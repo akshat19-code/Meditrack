@@ -1,0 +1,4 @@
+[2026-07-16 06:39:23] SUCCESS | Role: MASTER_ADMIN | Username: masteradmin | Hospital Code: N/A
+[2026-07-15 07:15:32] SUCCESS | Role: ADMIN | Username: adminsterling | Hospital Code: HOSP002
+[2026-07-15 07:13:41] FAILED | Role: DOCTOR | Username: snehadoc | Hospital Code: HOSP002
+[2026-07-15 07:13:02] SUCCESS | Role: DOCTOR | Username: snehadoc | Hospital Code: HOSP002

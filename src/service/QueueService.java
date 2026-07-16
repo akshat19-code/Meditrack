@@ -1,0 +1,157 @@
+package service;
+
+import dao.*;
+import model.*;
+
+import java.util.*;
+
+public class QueueService {
+
+    // Small helper class - just holds the display fields for one request
+    // waiting in the queue. No Comparable/Comparator logic here at all;
+    // ordering is handled entirely by WHICH queue the entry sits in
+    // (see below), not by sorting.
+    private static class QueueEntry {
+        int testRequestId;
+        String patientName;
+        String testName;
+        String priority;
+
+        QueueEntry(int testRequestId, String patientName, String testName, String priority) {
+            this.testRequestId = testRequestId;
+            this.patientName = patientName;
+            this.testName = testName;
+            this.priority = priority;
+        }
+    }
+
+    // Two separate FIFO queues from the Java Collections Framework.
+    // LinkedList implements the Queue interface, so add() joins the back
+    // and poll() removes from the front - this alone guarantees FIFO
+    // order within each queue, with no extra code needed.
+    //
+    // emergencyQueue is always drained first, so EMERGENCY requests are
+    // always processed before NORMAL ones, while still preserving arrival
+    // order inside each priority level.
+    private Queue<QueueEntry> emergencyQueue = new LinkedList<>();
+    private Queue<QueueEntry> normalQueue = new LinkedList<>();
+
+    private TestRequestDAO testRequestDAO = new TestRequestDAO();
+    private EquipmentDAO equipmentDAO = new EquipmentDAO();
+    private AdmissionDAO admissionDAO = new AdmissionDAO();
+    private PatientDAO patientDAO = new PatientDAO();
+    private TestTypeDAO testTypeDAO = new TestTypeDAO();
+
+    // Helper - looks up the real Patient name and Test name for a TestRequest,
+    // since the DB row only stores IDs, but the Queue needs readable names for display
+    private String getPatientName(TestRequest tr) {
+        Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
+        if (ad == null) return "Unknown Patient";
+
+        Patient p = patientDAO.getPatientById(ad.getPatientID());
+        return (p != null) ? p.getName() : "Unknown Patient";
+    }
+
+    private String getTestName(TestRequest tr) {
+        TestType tt = testTypeDAO.getTestTypeById(tr.getTestTypeID());
+        return (tt != null) ? tt.getTestName() : "Unknown Test";
+    }
+
+    // Adds one entry into the correct queue based on its priority.
+    // This is the ONLY place priority decides anything - after this,
+    // both queues just behave like plain FIFO lines.
+    private void addToQueue(int testRequestId, String patientName, String testName, String priority) {
+        QueueEntry entry = new QueueEntry(testRequestId, patientName, testName, priority);
+
+        if (priority.equalsIgnoreCase("EMERGENCY")) {
+            emergencyQueue.add(entry);
+        } else {
+            normalQueue.add(entry);
+        }
+    }
+
+    // Called once when the program starts, to rebuild the in-memory queues
+    // from whatever PENDING requests already exist in the database
+    public void loadPendingRequests(int hospitalId) {
+        List<TestRequest> pending = testRequestDAO.getPendingTestRequests(hospitalId);
+        for (TestRequest tr : pending) {
+            String patientName = getPatientName(tr);
+            String testName = getTestName(tr);
+            addToQueue(tr.getTestRequestID(), patientName, testName, tr.getPriority());
+        }
+        System.out.println("Queue restored with " + pending.size() + " pending request(s).");
+    }
+
+    // Called when a Doctor requests a test - inserts into DB first (to get an ID),
+    // then adds into the correct in-memory queue using the same ID and real names
+    public boolean requestTest(TestRequest tr, String patientName, String testName) {
+        int newId = testRequestDAO.insertTestRequest(tr);
+        if (newId == -1) {
+            System.out.println("Failed to create test request.");
+            return false;
+        }
+        addToQueue(newId, patientName, testName, tr.getPriority());
+        return true;
+    }
+
+    // Called when Lab Technician picks up the next request to process.
+    // Always checks the emergencyQueue first - if it has anything waiting,
+    // that gets processed no matter how long the normalQueue is.
+    // Only once emergencyQueue is empty does normalQueue get served.
+    public int processNextRequest() {
+        QueueEntry entry;
+
+        if (!emergencyQueue.isEmpty()) {
+            entry = emergencyQueue.poll();
+        } else if (!normalQueue.isEmpty()) {
+            entry = normalQueue.poll();
+        } else {
+            System.out.println("No pending test requests.");
+            return -1;
+        }
+
+        int testRequestId = entry.testRequestId;
+
+        testRequestDAO.updateTestRequestStatus(testRequestId, "PROCESSING");
+
+        TestRequest tr = testRequestDAO.getTestRequestById(testRequestId);
+        if (tr != null) {
+            equipmentDAO.updateEquipmentStatus(tr.getEquipmentID(), "IN USE");
+        }
+
+        return testRequestId;
+    }
+
+    // View the queue without removing anything - useful for a "View Pending Requests"
+    // menu option. Prints all EMERGENCY requests first (in their arrival order),
+    // then all NORMAL requests (in their arrival order) - matching exactly the
+    // order they would actually be processed in.
+    public void viewQueue() {
+        if (emergencyQueue.isEmpty() && normalQueue.isEmpty()) {
+            System.out.println("Queue is empty.");
+            return;
+        }
+
+        System.out.println("---- Current Test Request Queue ----");
+
+        for (QueueEntry entry : emergencyQueue) {
+            System.out.println("Request ID: " + entry.testRequestId +
+                    " | Patient: " + entry.patientName +
+                    " | Test: " + entry.testName +
+                    " | Priority: " + entry.priority);
+        }
+
+        for (QueueEntry entry : normalQueue) {
+            System.out.println("Request ID: " + entry.testRequestId +
+                    " | Patient: " + entry.patientName +
+                    " | Test: " + entry.testName +
+                    " | Priority: " + entry.priority);
+        }
+
+        System.out.println("-------------------------------------");
+    }
+
+    public boolean isQueueEmpty() {
+        return emergencyQueue.isEmpty() && normalQueue.isEmpty();
+    }
+}

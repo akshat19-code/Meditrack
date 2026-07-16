@@ -1,0 +1,16 @@
+====================================
+               FINAL BILL
+====================================
+Bill ID          : 5
+Admission ID     : 7
+Hospital         : Sterling Hospital
+Patient Name     : Yash Vyas
+Doctor           : null
+------------------------------------
+Room Charge      : Rs.1000.0
+Doctor Fee       : Rs.900.0
+Test Charge      : Rs.240.0
+------------------------------------
+TOTAL AMOUNT     : Rs.2140.0
+Bill Date        : 2026-07-15
+====================================
