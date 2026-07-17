@@ -18,6 +18,7 @@ public class PatientMenu {
     private BillDAO billDAO = new BillDAO();
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
+    private PatientDAO patientDAO = new PatientDAO();
     private HealthScoreService healthScoreService = new HealthScoreService();
 
     public PatientMenu(Scanner sc, MenuStack navStack, Patient p) {
@@ -66,6 +67,11 @@ public class PatientMenu {
 
         System.out.println(loggedInPatient);
 
+        int age = patientDAO.calculateAge(loggedInPatient.getDob());
+        if (age >= 0) {
+            System.out.println("Age: " + age + " years");
+        }
+
         navStack.pop();
     }
 
@@ -107,6 +113,19 @@ public class PatientMenu {
             }
             System.out.println("--------------------------------------------");
         }
+
+        // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
+        // Custom PatientHistoryList equivalent - load reports oldest-to-newest
+        // via addLast() (matching ReportDAO's existing order), then use the
+        // list's own displayFromLast() to print newest-first, replacing the
+        // manual reverse for-loop above.
+        // PatientHistoryList historyList = new PatientHistoryList();
+        // for (Report r : reports) {
+        //     String testName = getTestNameForReport(r);
+        //     historyList.addLast(r.getReportID(), testName, r.getResultValue(),
+        //             r.getResultStatus(), r.getAnalysisDate());
+        // }
+        // historyList.displayFromLast();
 
         navStack.pop();
     }

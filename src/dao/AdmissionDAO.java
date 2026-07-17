@@ -60,28 +60,6 @@ public class AdmissionDAO {
         return null;
     }
 
-    // Discharge a patient - sets Status to DISCHARGED and records the DischargeDate
-    // Called by Admin, this triggers BillingService to generate the final Bill afterward
-    public boolean dischargePatient(int admissionId, String dischargeDate) {
-        String query = "UPDATE Admission SET Status = ?, DischargeDate = ? WHERE AdmissionID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
-
-        try (PreparedStatement pstmt = con.prepareStatement(query)) {
-
-            pstmt.setString(1, "DISCHARGED");
-            pstmt.setString(2, dischargeDate);
-            pstmt.setInt(3, admissionId);
-
-            int rows = pstmt.executeUpdate();
-            return rows > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Error discharging patient: " + e.getMessage());
-            return false;
-        }
-    }
-
     // Fetch all active (still ADMITTED) Admissions for a Doctor - used to show
     // "Doctor's assigned patients" list, and for critical-patient ordering
     public List<Admission> getActiveAdmissionsByDoctor(int doctorId) {
@@ -126,6 +104,75 @@ public class AdmissionDAO {
             System.out.println("Error fetching Admissions: " + e.getMessage());
         }
         return admissionList;
+    }
+
+    // ================================================================
+    // PatientSummaryView-based methods
+    // These use the existing PatientSummaryView (Patient + Admission +
+    // Doctor + Hospital already joined in SQL) directly through ResultSet,
+    // instead of chaining several separate DAO calls together in Java.
+    // No new model/DTO class is created for the view - callers just read
+    // the specific fields they need off the returned array/list.
+    // ================================================================
+
+    // Fetch combined Patient + Doctor + Hospital summary fields for one Admission,
+    // using PatientSummaryView instead of separate getAdmissionById() + getDoctorById()
+    // + getPatientById() + getHospitalById() calls. Returns null if no matching row
+    // exists in the view (i.e. AdmissionID not found).
+    // Array layout: [0] = PatientID, [1] = PatientName, [2] = DoctorName, [3] = HospitalName
+    public String[] getPatientSummaryByAdmissionId(int admissionId) {
+        String query = "SELECT PatientID, PatientName, DoctorName, HospitalName " +
+                "FROM PatientSummaryView WHERE AdmissionID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, admissionId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return new String[] {
+                        String.valueOf(rs.getInt("PatientID")),
+                        rs.getString("PatientName"),
+                        rs.getString("DoctorName"),
+                        rs.getString("HospitalName")
+                };
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching PatientSummaryView by AdmissionID: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // Fetch ready-to-print summary lines for a Doctor's currently ADMITTED patients,
+    // using PatientSummaryView. Replaces the old pattern of fetching a List<Admission>
+    // and then calling patientDAO.getPatientById() once per admission (N+1 queries).
+    public List<String> getActivePatientSummariesByDoctor(int doctorId) {
+        List<String> summaries = new ArrayList<>();
+        String query = "SELECT AdmissionID, PatientName, RoomNumber, Status " +
+                "FROM PatientSummaryView WHERE DoctorID = ? AND Status = 'ADMITTED'";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, doctorId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String line = "Admission ID: " + rs.getInt("AdmissionID") +
+                        " | Patient: " + rs.getString("PatientName") +
+                        " | Room: " + rs.getString("RoomNumber") +
+                        " | Status: " + rs.getString("Status");
+                summaries.add(line);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching patient summaries for Doctor: " + e.getMessage());
+        }
+        return summaries;
     }
 
     // Helper method - builds an Admission object from a ResultSet row

@@ -1,3 +1,9 @@
+[2026-07-17 23:38:01] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001
+[2026-07-17 23:26:52] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001
+[2026-07-17 23:21:54] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001
+[2026-07-17 23:14:01] SUCCESS | Role: MASTER_ADMIN | Username: arvind.admin | Hospital Code: N/A
+[2026-07-17 23:11:12] SUCCESS | Role: MASTER_ADMIN | Username: arvind.admin | Hospital Code: N/A
+[2026-07-17 23:04:00] SUCCESS | Role: MASTER_ADMIN | Username: arvind.admin | Hospital Code: N/A
 [2026-07-16 23:35:51] SUCCESS | Role: LAB_TECHNICIAN | Username: lt.arun | Hospital Code: HSP003
 [2026-07-16 23:35:22] FAILED | Role: LAB_TECHNICIAN | Username: lt.arun | Hospital Code: HSP003
 [2026-07-16 23:34:47] FAILED | Role: LAB_TECHNICIAN | Username: lt.arun | Hospital Code: HOSP003

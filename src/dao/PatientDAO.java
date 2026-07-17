@@ -110,6 +110,28 @@ public class PatientDAO {
         return null;
     }
 
+    // Calculates a Patient's current age from their DOB using the database's
+    // CalculateAge(DOB) function - called wherever age needs to be displayed,
+    // since age is dynamic and should never be stored.
+    public int calculateAge(String dob) {
+        String query = "{? = call CalculateAge(?)}";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (CallableStatement cstmt = con.prepareCall(query)) {
+
+            cstmt.registerOutParameter(1, Types.INTEGER);
+            cstmt.setString(2, dob);
+            cstmt.execute();
+
+            return cstmt.getInt(1);
+
+        } catch (SQLException e) {
+            System.out.println("Error calculating age: " + e.getMessage());
+            return -1;
+        }
+    }
+
     // Helper method - builds a Patient object from a ResultSet row
     private Patient buildPatientFromResultSet(ResultSet rs) throws SQLException {
         Patient p = new Patient();

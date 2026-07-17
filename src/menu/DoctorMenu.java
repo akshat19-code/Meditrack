@@ -65,16 +65,17 @@ public class DoctorMenu {
         navStack.push("ViewAssignedPatients");
         System.out.println("\nPath: " + navStack.getPath());
         System.out.println("Logged In Doctor ID = " + loggedInDoctor.getDoctorID());
-        List<Admission> admissions = admissionDAO.getActiveAdmissionsByDoctor(loggedInDoctor.getDoctorID());
-        if (admissions.isEmpty()) {
+
+        // Uses PatientSummaryView (Patient + Admission + Doctor + Hospital already
+        // joined) instead of the old approach of fetching a List<Admission> and then
+        // calling patientDAO.getPatientById() once per admission (N+1 queries).
+        List<String> summaries = admissionDAO.getActivePatientSummariesByDoctor(loggedInDoctor.getDoctorID());
+
+        if (summaries.isEmpty()) {
             System.out.println("No currently assigned patients.");
         } else {
-            for (Admission ad : admissions) {
-                Patient p = patientDAO.getPatientById(ad.getPatientID());
-                System.out.println("Admission ID: " + ad.getAdmissionID() +
-                        " | Patient: " + (p != null ? p.getName() : "Unknown") +
-                        " | Room: " + ad.getRoomNumber() +
-                        " | Status: " + ad.getStatus());
+            for (String line : summaries) {
+                System.out.println(line);
             }
         }
 
@@ -163,21 +164,11 @@ public class DoctorMenu {
         if (success) {
 
             TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
+            Admission adForNotes = (tr != null) ? admissionDAO.getAdmissionById(tr.getAdmissionID()) : null;
 
-            if (tr != null) {
-
-                Admission adForNotes = admissionDAO.getAdmissionById(tr.getAdmissionID());
-
-                if (adForNotes != null) {
-
-                    fileManager.appendDiagnosisToReportFile(reportId, notes);
-
-                    fileManager.addDiagnosisHistoryEntry(
-                            adForNotes.getPatientID(),
-                            reportId,
-                            notes
-                    );
-                }
+            if (adForNotes != null) {
+                fileManager.appendDiagnosisToReportFile(reportId, notes);
+                fileManager.addDiagnosisHistoryEntry(adForNotes.getPatientID(), reportId, loggedInDoctor.getName());
             }
 
             System.out.println("Notes added successfully!");
@@ -186,15 +177,6 @@ public class DoctorMenu {
 
             System.out.println("Failed to add notes.");
 
-        }
-
-        if (success) {
-            TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
-            Admission ad = (tr != null) ? admissionDAO.getAdmissionById(tr.getAdmissionID()) : null;
-            if (ad != null) {
-                fileManager.appendDiagnosisToReportFile(reportId, notes);
-                fileManager.addDiagnosisHistoryEntry(ad.getPatientID(), reportId, loggedInDoctor.getName());
-            }
         }
 
         navStack.pop();

@@ -75,27 +75,6 @@ public class EquipmentDAO {
         return null;
     }
 
-    // Update Status only - used when a TestRequest starts processing (-> IN USE)
-    // and when its Report is generated (-> AVAILABLE again)
-    public boolean updateEquipmentStatus(int equipmentId, String newStatus) {
-        String query = "UPDATE Equipment SET Status = ? WHERE EquipmentID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
-
-        try (PreparedStatement pstmt = con.prepareStatement(query)) {
-
-            pstmt.setString(1, newStatus);
-            pstmt.setInt(2, equipmentId);
-
-            int rows = pstmt.executeUpdate();
-            return rows > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Error updating Equipment status: " + e.getMessage());
-            return false;
-        }
-    }
-
     // Fetch all Equipment in a Hospital - used by Admin when viewing equipment list
     public List<Equipment> getAllEquipmentByHospital(int hospitalId) {
         List<Equipment> equipmentList = new ArrayList<>();

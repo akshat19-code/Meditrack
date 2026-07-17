@@ -8,9 +8,7 @@ public class ReportAnalyser {
     private ReportDAO reportDAO = new ReportDAO();
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
-    private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private AdmissionDAO admissionDAO = new AdmissionDAO();
-    private PatientDAO patientDAO = new PatientDAO();
     private LabTechnicianDAO labTechDAO = new LabTechnicianDAO();
     private FileManager fileManager = new FileManager();
 
@@ -32,8 +30,9 @@ public class ReportAnalyser {
     }
 
     // Called when Lab Technician uploads a result. Handles the full flow:
-    // analyse the result, save the Report, mark TestRequest COMPLETED,
-    // and free up the Equipment back to AVAILABLE.
+    // analyse the result, save the Report, mark TestRequest COMPLETED.
+    // Equipment.Status is now updated automatically by the UpdateEquipmentStatus
+    // trigger when TestRequest.Status changes to COMPLETED - no manual update needed.
     public boolean generateReport(int testRequestId, double resultValue, String analysisDate, int labTechId) {
         TestRequest tr = testRequestDAO.getTestRequestById(testRequestId);
         if (tr == null) {
@@ -63,18 +62,22 @@ public class ReportAnalyser {
         }
 
         testRequestDAO.updateTestRequestStatus(testRequestId, "COMPLETED");
-        equipmentDAO.updateEquipmentStatus(tr.getEquipmentID(), "AVAILABLE");
 
         // ---- File writing: fetch the row back to get its auto-generated ReportID ----
         Report savedReport = reportDAO.getReportByTestRequestId(testRequestId);
-        Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
-        Patient p = (ad != null) ? patientDAO.getPatientById(ad.getPatientID()) : null;
+
+        // Patient name/ID fetched via PatientSummaryView in one query, instead of
+        // getAdmissionById() -> getPatientById() chained lookups.
+        String[] patientSummary = admissionDAO.getPatientSummaryByAdmissionId(tr.getAdmissionID());
         LabTechnician lt = labTechDAO.getLabTechnicianById(labTechId);
 
-        if (savedReport != null && p != null && lt != null) {
-            fileManager.writeReportFile(savedReport.getReportID(), testRequestId, p.getName(),
+        if (savedReport != null && patientSummary != null && lt != null) {
+            int patientId = Integer.parseInt(patientSummary[0]);
+            String patientName = patientSummary[1];
+
+            fileManager.writeReportFile(savedReport.getReportID(), testRequestId, patientName,
                     tt.getTestName(), resultValue, status, analysisDate, lt.getName());
-            fileManager.addReportHistoryEntry(p.getPatientID(), savedReport.getReportID(),
+            fileManager.addReportHistoryEntry(patientId, savedReport.getReportID(),
                     tt.getTestName(), status, analysisDate);
         }
 

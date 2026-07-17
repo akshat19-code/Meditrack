@@ -30,7 +30,7 @@ public class MasterAdminMenu {
             System.out.println("===== Master Admin Menu =====");
             System.out.println("1. Register New Hospital");
             System.out.println("2. View All Hospitals");
-            System.out.println("3. Suspend / Reactivate Hospital");
+            System.out.println("3. Suspend / Reactivate / Remove Hospital");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             System.out.print("Enter choice: ");
@@ -116,6 +116,20 @@ public class MasterAdminMenu {
     private void updateHospitalStatus() {
         navStack.push("UpdateHospitalStatus");
         System.out.println("\nPath: " + navStack.getPath());
+        System.out.println("\nAvailable Hospitals:");
+
+        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
+
+        for (Hospital h : hospitals) {
+            System.out.println(
+                    h.getHospitalID() + " -> " +
+                            h.getHospitalCode() + " -> " +
+                            h.getHospitalName() +
+                            " (" + h.getStatus() + ")"
+            );
+        }
+
+        System.out.println();
 
         System.out.print("Enter Hospital ID: ");
         int hospitalId = sc.nextInt();

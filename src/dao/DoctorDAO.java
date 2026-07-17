@@ -109,25 +109,6 @@ public class DoctorDAO {
         return doctorList;
     }
 
-    // Increment PatientCount by 1 - called whenever a new Admission is created for this doctor
-    // (Workload Manager relies on this staying accurate)
-    public boolean incrementPatientCount(int doctorId) {
-        String query = "UPDATE Doctor SET PatientCount = PatientCount + 1 WHERE DoctorID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
-
-        try (PreparedStatement pstmt = con.prepareStatement(query)) {
-
-            pstmt.setInt(1, doctorId);
-            int rows = pstmt.executeUpdate();
-            return rows > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Error updating PatientCount: " + e.getMessage());
-            return false;
-        }
-    }
-
     // Helper method - builds a Doctor object from a ResultSet row
     private Doctor buildDoctorFromResultSet(ResultSet rs) throws SQLException {
         Doctor d = new Doctor();

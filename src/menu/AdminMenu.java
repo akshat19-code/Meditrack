@@ -238,9 +238,11 @@ public class AdminMenu {
         ad.setAdminID(loggedInAdmin.getAdminID());
         ad.setHospitalID(loggedInAdmin.getHospitalID());
 
+        // NOTE: Doctor.PatientCount is now incremented automatically by the
+        // UpdateDoctorPatientCount trigger (fires AFTER INSERT ON Admission) -
+        // no manual increment needed here anymore.
         boolean admissionAdded = admissionDAO.insertAdmission(ad);
         if (admissionAdded) {
-            doctorDAO.incrementPatientCount(assignedDoctor.getDoctorID());
             System.out.println("Admission created successfully! Assigned Doctor: " + assignedDoctor.getName());
             fileManager.addAdmissionHistoryEntry(newPatient.getPatientID(), assignedDoctor.getName(),
                     roomNumber, roomType.toUpperCase(), admissionDate);
@@ -314,11 +316,8 @@ public class AdminMenu {
 
         System.out.print("Enter Admission ID: ");
         int admissionId = sc.nextInt();
-        sc.nextLine();
-        System.out.print("Discharge Date (YYYY-MM-DD): ");
-        String dischargeDate = sc.nextLine();
 
-        billingService.dischargeAndGenerateBill(admissionId, dischargeDate);
+        billingService.dischargeAndGenerateBill(admissionId);
 
         navStack.pop();
     }

@@ -1,6 +1,7 @@
 package service;
 
 import dao.*;
+import ds.TestRequestQueue;
 import model.*;
 
 import java.util.*;
@@ -36,8 +37,17 @@ public class QueueService {
     private Queue<QueueEntry> emergencyQueue = new LinkedList<>();
     private Queue<QueueEntry> normalQueue = new LinkedList<>();
 
+    // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
+    // Custom TestRequestQueue equivalent - a single queue where enqueue()
+    // itself decides front (EMERGENCY) vs rear (NORMAL) placement, and
+    // deleteFromFront() always serves the correct next request.
+    // To use this instead of the two Queue<QueueEntry> above:
+    //   1. Uncomment the line below.
+    //   2. Replace addToQueue()/processNextRequest()/viewQueue() bodies
+    //      with the commented versions further down in this file.
+    // private TestRequestQueue testRequestQueue = new TestRequestQueue();
+
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
-    private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private AdmissionDAO admissionDAO = new AdmissionDAO();
     private PatientDAO patientDAO = new PatientDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
@@ -70,6 +80,11 @@ public class QueueService {
         }
     }
 
+    // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
+    // private void addToQueue(int testRequestId, String patientName, String testName, String priority) {
+    //     testRequestQueue.enqueue(testRequestId, patientName, testName, priority);
+    // }
+
     // Called once when the program starts, to rebuild the in-memory queues
     // from whatever PENDING requests already exist in the database
     public void loadPendingRequests(int hospitalId) {
@@ -98,6 +113,8 @@ public class QueueService {
     // Always checks the emergencyQueue first - if it has anything waiting,
     // that gets processed no matter how long the normalQueue is.
     // Only once emergencyQueue is empty does normalQueue get served.
+    // Equipment.Status is now updated automatically by the UpdateEquipmentStatus
+    // trigger when TestRequest.Status changes to PROCESSING - no manual update needed.
     public int processNextRequest() {
         QueueEntry entry;
 
@@ -114,13 +131,19 @@ public class QueueService {
 
         testRequestDAO.updateTestRequestStatus(testRequestId, "PROCESSING");
 
-        TestRequest tr = testRequestDAO.getTestRequestById(testRequestId);
-        if (tr != null) {
-            equipmentDAO.updateEquipmentStatus(tr.getEquipmentID(), "IN USE");
-        }
-
         return testRequestId;
     }
+
+    // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
+    // public int processNextRequest() {
+    //     if (testRequestQueue.isEmpty()) {
+    //         System.out.println("No pending test requests.");
+    //         return -1;
+    //     }
+    //     int testRequestId = testRequestQueue.deleteFromFront();
+    //     testRequestDAO.updateTestRequestStatus(testRequestId, "PROCESSING");
+    //     return testRequestId;
+    // }
 
     // View the queue without removing anything - useful for a "View Pending Requests"
     // menu option. Prints all EMERGENCY requests first (in their arrival order),
@@ -151,7 +174,17 @@ public class QueueService {
         System.out.println("-------------------------------------");
     }
 
+    // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
+    // public void viewQueue() {
+    //     testRequestQueue.display();
+    // }
+
     public boolean isQueueEmpty() {
         return emergencyQueue.isEmpty() && normalQueue.isEmpty();
     }
+
+    // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
+    // public boolean isQueueEmpty() {
+    //     return testRequestQueue.isEmpty();
+    // }
 }
