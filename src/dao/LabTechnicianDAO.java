@@ -4,6 +4,8 @@ import database.DatabaseConnection;
 import model.LabTechnician;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LabTechnicianDAO {
 
@@ -76,6 +78,29 @@ public class LabTechnicianDAO {
             System.out.println("Error fetching LabTechnician: " + e.getMessage());
         }
         return null;
+    }
+
+    // Fetch all Lab Technicians in a Hospital - used by Admin when viewing the
+    // lab technician list (mirrors DoctorDAO.getAllDoctorsByHospital())
+    public List<LabTechnician> getAllLabTechniciansByHospital(int hospitalId) {
+        List<LabTechnician> labTechList = new ArrayList<>();
+        String query = "SELECT * FROM LabTechnician WHERE HospitalID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                labTechList.add(buildLabTechFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching LabTechnicians: " + e.getMessage());
+        }
+        return labTechList;
     }
 
     // Helper method - builds a LabTechnician object from a ResultSet row

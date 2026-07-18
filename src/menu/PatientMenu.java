@@ -4,6 +4,7 @@ import dao.*;
 import ds.*;
 import model.*;
 import service.*;
+import util.*;
 
 import java.util.*;
 
@@ -19,6 +20,7 @@ public class PatientMenu {
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
     private PatientDAO patientDAO = new PatientDAO();
+    private DoctorDAO doctorDAO = new DoctorDAO();
     private HealthScoreService healthScoreService = new HealthScoreService();
 
     public PatientMenu(Scanner sc, MenuStack navStack, Patient p) {
@@ -40,8 +42,7 @@ public class PatientMenu {
             System.out.println("4. View Admission Status & Bill");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
-            System.out.print("Enter choice: ");
-            int choice = sc.nextInt();
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
                 case 1 -> viewMyDetails();
@@ -107,7 +108,7 @@ public class PatientMenu {
 
                 System.out.println("Report ID: " + r.getReportID() +
                         " | Test: " + testName +
-                        " | Result: " + r.getResultValue() +
+                        " | Result: " + String.format("%.2f", r.getResultValue()) +
                         " | Status: " + r.getResultStatus() +
                         " | Date: " + r.getAnalysisDate());
             }
@@ -135,7 +136,7 @@ public class PatientMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         double score = healthScoreService.calculateHealthScore(loggedInPatient.getPatientID());
-        System.out.println("Your Health Score: " + score + " / 100");
+        System.out.println("Your Health Score: " + String.format("%.2f", score) + " / 100");
 
         navStack.pop();
     }
@@ -150,7 +151,14 @@ public class PatientMenu {
             System.out.println("No admission records found.");
         } else {
             for (Admission ad : admissions) {
+                // Look up the doctor's name instead of showing a raw DoctorID,
+                // since Admission.toString() only has the ID available to it.
+                Doctor d = doctorDAO.getDoctorById(ad.getDoctorID());
+                String doctorName = (d != null) ? d.getName() : "Unknown Doctor";
+
                 System.out.println(ad);
+                System.out.println("Attending Doctor: " + doctorName);
+
                 if (ad.getStatus().equalsIgnoreCase("DISCHARGED")) {
                     Bill b = billDAO.getBillByAdmissionId(ad.getAdmissionID());
                     if (b != null) {

@@ -57,12 +57,17 @@ public class Admission {
     public void setHospitalID(int hospitalID) { this.hospitalID = hospitalID; }
 
     public String toString() {
+        String dischargeDisplay = (dischargeDate == null || dischargeDate.isBlank())
+                ? "Not yet discharged"
+                : dischargeDate;
+
         return "Admission ID: " + admissionID +
                 " | Patient ID: " + patientID +
                 " | Doctor ID: " + doctorID +
                 " | Room: " + roomNumber +
                 " | Room Type: " + roomType +
                 " | Status: " + status +
-                " | Admission Date: " + admissionDate;
+                " | Admission Date: " + admissionDate +
+                " | Discharge Date: " + dischargeDisplay;
     }
 }

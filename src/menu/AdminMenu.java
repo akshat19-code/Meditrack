@@ -6,7 +6,9 @@ import model.*;
 import service.WorkloadManager;
 import service.BillingService;
 import service.FileManager;
+import util.InputValidator;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class AdminMenu {
@@ -43,10 +45,13 @@ public class AdminMenu {
             System.out.println("3. Register Patient & Create Admission");
             System.out.println("4. Add Test Type");
             System.out.println("5. Discharge Patient");
+            System.out.println("6. View Doctors");
+            System.out.println("7. View Lab Technicians");
+            System.out.println("8. View Test Types");
+            System.out.println("9. View Equipment");
             System.out.println("0. Back");
-            System.out.println("9. Exit Application");
-            System.out.print("Enter choice: ");
-            int choice = sc.nextInt();
+            System.out.println("99. Exit Application");
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
                 case 1 -> addDoctor();
@@ -54,11 +59,15 @@ public class AdminMenu {
                 case 3 -> registerPatientAndAdmit();
                 case 4 -> addTestType();
                 case 5 -> dischargePatient();
+                case 6 -> viewDoctors();
+                case 7 -> viewLabTechnicians();
+                case 8 -> viewTestTypes();
+                case 9 -> viewEquipment();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
                 }
-                case 9 -> {
+                case 99 -> {
                     System.out.println("Exiting MediTrack. Goodbye!");
                     System.exit(0);
                 }
@@ -72,26 +81,24 @@ public class AdminMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         sc.nextLine();
-        System.out.print("First Name: ");
-        String firstName = sc.nextLine();
-        System.out.print("Last Name: ");
-        String lastName = sc.nextLine();
-        System.out.print("Username: ");
-        String username = sc.nextLine();
-        System.out.print("Password: ");
-        String password = sc.nextLine();
-        System.out.print("Email: ");
-        String email = sc.nextLine();
-        System.out.print("Phone No: ");
-        String phone = sc.nextLine();
-        System.out.print("Specialization: ");
-        String specialization = sc.nextLine();
-        System.out.print("Department: ");
-        String department = sc.nextLine();
-        System.out.print("Qualification: ");
-        String qualification = sc.nextLine();
-        System.out.print("Consultation Fee: ");
-        double fee = sc.nextDouble();
+        String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
+        String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
+        String username = InputValidator.readNonEmptyString(sc, "Username: ");
+
+        // Duplicate username check - must be unique within this hospital
+        if (doctorDAO.getDoctorByUsername(username, loggedInAdmin.getHospitalID()) != null) {
+            System.out.println("A doctor with this username already exists in your hospital.");
+            navStack.pop();
+            return;
+        }
+
+        String password = InputValidator.readNonEmptyString(sc, "Password: ");
+        String email = InputValidator.readNonEmptyString(sc, "Email: ");
+        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+        String specialization = InputValidator.readNonEmptyString(sc, "Specialization: ");
+        String department = InputValidator.readNonEmptyString(sc, "Department: ");
+        String qualification = InputValidator.readNonEmptyString(sc, "Qualification: ");
+        double fee = InputValidator.readPositiveDouble(sc, "Consultation Fee: ");
 
         Doctor d = new Doctor();
         d.setFirstName(firstName);
@@ -117,20 +124,21 @@ public class AdminMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         sc.nextLine();
-        System.out.print("First Name: ");
-        String firstName = sc.nextLine();
-        System.out.print("Last Name: ");
-        String lastName = sc.nextLine();
-        System.out.print("Username: ");
-        String username = sc.nextLine();
-        System.out.print("Password: ");
-        String password = sc.nextLine();
-        System.out.print("Email: ");
-        String email = sc.nextLine();
-        System.out.print("Phone No: ");
-        String phone = sc.nextLine();
-        System.out.print("Qualification: ");
-        String qualification = sc.nextLine();
+        String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
+        String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
+        String username = InputValidator.readNonEmptyString(sc, "Username: ");
+
+        // Duplicate username check - must be unique within this hospital
+        if (labTechDAO.getLabTechnicianByUsername(username, loggedInAdmin.getHospitalID()) != null) {
+            System.out.println("A lab technician with this username already exists in your hospital.");
+            navStack.pop();
+            return;
+        }
+
+        String password = InputValidator.readNonEmptyString(sc, "Password: ");
+        String email = InputValidator.readNonEmptyString(sc, "Email: ");
+        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+        String qualification = InputValidator.readNonEmptyString(sc, "Qualification: ");
 
         LabTechnician lt = new LabTechnician();
         lt.setFirstName(firstName);
@@ -153,60 +161,78 @@ public class AdminMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         sc.nextLine();
-        System.out.print("First Name: ");
-        String firstName = sc.nextLine();
-        System.out.print("Last Name: ");
-        String lastName = sc.nextLine();
-        System.out.print("Username: ");
-        String username = sc.nextLine();
-        System.out.print("Password: ");
-        String password = sc.nextLine();
-        System.out.print("Email: ");
-        String email = sc.nextLine();
-        System.out.print("Phone No: ");
-        String phone = sc.nextLine();
-        System.out.print("DOB (YYYY-MM-DD): ");
-        String dob = sc.nextLine();
-        System.out.print("Gender: ");
-        String gender = sc.nextLine();
-        System.out.print("Blood Group: ");
-        String bloodGroup = sc.nextLine();
-        System.out.print("Street: ");
-        String street = sc.nextLine();
-        System.out.print("City: ");
-        String city = sc.nextLine();
-        System.out.print("State: ");
-        String state = sc.nextLine();
-        System.out.print("Pincode: ");
-        String pincode = sc.nextLine();
+        String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
+        String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
+        String username = InputValidator.readNonEmptyString(sc, "Username: ");
+        String password = InputValidator.readNonEmptyString(sc, "Password: ");
+        String email = InputValidator.readNonEmptyString(sc, "Email: ");
+        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+        String dob = InputValidator.readDate(sc, "DOB (YYYY-MM-DD): ", true);
 
-        Patient p = new Patient();
-        p.setFirstName(firstName);
-        p.setLastName(lastName);
-        p.setUsername(username);
-        p.setPassword(password);
-        p.setEmail(email);
-        p.setPhoneNo(phone);
-        p.setDob(dob);
-        p.setGender(gender);
-        p.setBloodGroup(bloodGroup);
-        p.setStreet(street);
-        p.setCity(city);
-        p.setState(state);
-        p.setPincode(pincode);
-        p.setHospitalID(loggedInAdmin.getHospitalID());
+        String gender = InputValidator.readMenuChoice(sc, "Gender:",
+                new String[]{"MALE", "FEMALE", "OTHER"},
+                new String[]{"MALE", "FEMALE", "OTHER"});
+        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
 
-        boolean patientAdded = patientDAO.insertPatient(p);
-        if (!patientAdded) {
-            System.out.println("Failed to register patient.");
-            navStack.pop();
-            return;
+        String bloodGroup = InputValidator.readMenuChoice(sc, "Blood Group:",
+                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"},
+                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"});
+        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+
+        String street = InputValidator.readNonEmptyString(sc, "Street: ");
+        String city = InputValidator.readAlphabeticString(sc, "City: ");
+        String state = InputValidator.readAlphabeticString(sc, "State: ");
+        String pincode = InputValidator.readPincode(sc, "Pincode: ");
+
+        String fullName = firstName + " " + lastName;
+
+        // Check if this is a returning patient (same Name + DOB in this hospital)
+        // BEFORE inserting, so we reuse the existing Patient row instead of
+        // creating a duplicate one.
+        Patient existingPatient = patientDAO.findReturningPatient(fullName, dob, loggedInAdmin.getHospitalID());
+        Patient newPatient;
+
+        if (existingPatient != null) {
+            System.out.println("Returning patient detected - reusing existing patient record.");
+            newPatient = existingPatient;
+        } else {
+            // Duplicate username check - only relevant when we're actually inserting a new Patient row
+            if (patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID()) != null) {
+                System.out.println("A patient with this username already exists in your hospital.");
+                navStack.pop();
+                return;
+            }
+
+            Patient p = new Patient();
+            p.setFirstName(firstName);
+            p.setLastName(lastName);
+            p.setUsername(username);
+            p.setPassword(password);
+            p.setEmail(email);
+            p.setPhoneNo(phone);
+            p.setDob(dob);
+            p.setGender(gender);
+            p.setBloodGroup(bloodGroup);
+            p.setStreet(street);
+            p.setCity(city);
+            p.setState(state);
+            p.setPincode(pincode);
+            p.setHospitalID(loggedInAdmin.getHospitalID());
+
+            boolean patientAdded = patientDAO.insertPatient(p);
+            if (!patientAdded) {
+                System.out.println("Failed to register patient.");
+                navStack.pop();
+                return;
+            }
+            System.out.println("Patient registered successfully!");
+
+            newPatient = patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID());
         }
-        System.out.println("Patient registered successfully!");
 
         // Assign a doctor - returning patient gets previous doctor, else least busy
         Doctor assignedDoctor = workloadManager.assignDoctor(
-                firstName + " " + lastName, dob, loggedInAdmin.getHospitalID());
+                fullName, dob, loggedInAdmin.getHospitalID());
 
         if (assignedDoctor == null) {
             System.out.println("No doctor available to assign. Admission cancelled.");
@@ -214,23 +240,22 @@ public class AdminMenu {
             return;
         }
 
-        System.out.print("Room Number: ");
-        String roomNumber = sc.nextLine();
-        System.out.print("Room Type (GENERAL/SEMI_PRIVATE/PRIVATE/ICU): ");
-        String roomType = sc.nextLine();
-        System.out.print("Room Charge: ");
-        double roomCharge = sc.nextDouble();
-        sc.nextLine();
-        System.out.print("Admission Date (YYYY-MM-DD): ");
-        String admissionDate = sc.nextLine();
+        String roomNumber = InputValidator.readNonEmptyString(sc, "Room Number: ");
 
-        Patient newPatient = patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID());
+        String roomType = InputValidator.readMenuChoice(sc, "Room Type:",
+                new String[]{"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"},
+                new String[]{"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"});
+        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+
+        double roomCharge = InputValidator.readPositiveDouble(sc, "Room Charge: ");
+        sc.nextLine();
+        String admissionDate = InputValidator.readDate(sc, "Admission Date (YYYY-MM-DD): ", false);
 
         Admission ad = new Admission();
         ad.setAdmissionDate(admissionDate);
         ad.setDischargeDate(null);
         ad.setRoomNumber(roomNumber);
-        ad.setRoomType(roomType.toUpperCase());
+        ad.setRoomType(roomType);
         ad.setRoomCharge(roomCharge);
         ad.setStatus("ADMITTED");
         ad.setPatientID(newPatient.getPatientID());
@@ -245,7 +270,7 @@ public class AdminMenu {
         if (admissionAdded) {
             System.out.println("Admission created successfully! Assigned Doctor: " + assignedDoctor.getName());
             fileManager.addAdmissionHistoryEntry(newPatient.getPatientID(), assignedDoctor.getName(),
-                    roomNumber, roomType.toUpperCase(), admissionDate);
+                    roomNumber, roomType, admissionDate);
         } else {
             System.out.println("Failed to create admission.");
         }
@@ -258,22 +283,34 @@ public class AdminMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         sc.nextLine();
-        System.out.print("Test Name: ");
-        String testName = sc.nextLine();
-        System.out.print("Normal Min: ");
-        double normalMin = sc.nextDouble();
-        System.out.print("Normal Max: ");
-        double normalMax = sc.nextDouble();
-        sc.nextLine();
-        System.out.print("Unit (e.g. g/dL): ");
-        String unit = sc.nextLine();
-        System.out.print("Test Charge: ");
-        double testCharge = sc.nextDouble();
-        sc.nextLine();
-        System.out.print("Equipment Name Required: ");
-        String equipmentName = sc.nextLine();
+        String testName = InputValidator.readNonEmptyString(sc, "Test Name: ");
 
         int hospitalId = loggedInAdmin.getHospitalID();
+
+        // Duplicate check - same TestName should not exist twice in the same hospital
+        List<TestType> existingTestTypes = testTypeDAO.getAllTestTypesByHospital(hospitalId);
+        for (TestType existing : existingTestTypes) {
+            if (existing.getTestName().equalsIgnoreCase(testName)) {
+                System.out.println("A test type with this name already exists in your hospital.");
+                navStack.pop();
+                return;
+            }
+        }
+
+        double normalMin = InputValidator.readNonNegativeDouble(sc, "Normal Min: ");
+        double normalMax;
+        while (true) {
+            normalMax = InputValidator.readNonNegativeDouble(sc, "Normal Max: ");
+            if (normalMax > normalMin) {
+                break;
+            }
+            System.out.println("Normal Max must be greater than Normal Min. Please try again.");
+        }
+        sc.nextLine();
+        String unit = InputValidator.readNonEmptyString(sc, "Unit (e.g. g/dL): ");
+        double testCharge = InputValidator.readPositiveDouble(sc, "Test Charge: ");
+        sc.nextLine();
+        String equipmentName = InputValidator.readNonEmptyString(sc, "Equipment Name Required: ");
 
         // Case-insensitive, hospital-scoped check - reuse existing Equipment if it exists
         Equipment existingEquipment = equipmentDAO.findByEquipmentName(equipmentName, hospitalId);
@@ -314,10 +351,102 @@ public class AdminMenu {
         navStack.push("DischargePatient");
         System.out.println("\nPath: " + navStack.getPath());
 
-        System.out.print("Enter Admission ID: ");
-        int admissionId = sc.nextInt();
+        int admissionId = InputValidator.readInt(sc, "Enter Admission ID: ");
+
+        Admission ad = admissionDAO.getAdmissionById(admissionId);
+        if (ad == null) {
+            System.out.println("Admission not found.");
+            navStack.pop();
+            return;
+        }
+
+        if (ad.getHospitalID() != loggedInAdmin.getHospitalID()) {
+            System.out.println("This admission does not belong to your hospital.");
+            navStack.pop();
+            return;
+        }
+
+        if (ad.getStatus().equalsIgnoreCase("DISCHARGED")) {
+            System.out.println("This patient has already been discharged.");
+            navStack.pop();
+            return;
+        }
+
+        sc.nextLine();
+        System.out.print("Confirm discharge for Admission ID " + admissionId + "? (Y/N): ");
+        String confirm = sc.nextLine();
+
+        if (!confirm.equalsIgnoreCase("Y")) {
+            System.out.println("Discharge cancelled.");
+            navStack.pop();
+            return;
+        }
 
         billingService.dischargeAndGenerateBill(admissionId);
+
+        navStack.pop();
+    }
+
+    private void viewDoctors() {
+        navStack.push("ViewDoctors");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Doctor> doctors = doctorDAO.getAllDoctorsByHospital(loggedInAdmin.getHospitalID());
+        if (doctors.isEmpty()) {
+            System.out.println("No doctors found.");
+        } else {
+            for (Doctor d : doctors) {
+                System.out.println(d);
+            }
+        }
+
+        navStack.pop();
+    }
+
+    private void viewLabTechnicians() {
+        navStack.push("ViewLabTechnicians");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<LabTechnician> labTechs = labTechDAO.getAllLabTechniciansByHospital(loggedInAdmin.getHospitalID());
+        if (labTechs.isEmpty()) {
+            System.out.println("No lab technicians found.");
+        } else {
+            for (LabTechnician lt : labTechs) {
+                System.out.println(lt);
+            }
+        }
+
+        navStack.pop();
+    }
+
+    private void viewTestTypes() {
+        navStack.push("ViewTestTypes");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<TestType> testTypes = testTypeDAO.getAllTestTypesByHospital(loggedInAdmin.getHospitalID());
+        if (testTypes.isEmpty()) {
+            System.out.println("No test types found.");
+        } else {
+            for (TestType tt : testTypes) {
+                System.out.println(tt);
+            }
+        }
+
+        navStack.pop();
+    }
+
+    private void viewEquipment() {
+        navStack.push("ViewEquipment");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Equipment> equipmentList = equipmentDAO.getAllEquipmentByHospital(loggedInAdmin.getHospitalID());
+        if (equipmentList.isEmpty()) {
+            System.out.println("No equipment found.");
+        } else {
+            for (Equipment eq : equipmentList) {
+                System.out.println(eq);
+            }
+        }
 
         navStack.pop();
     }

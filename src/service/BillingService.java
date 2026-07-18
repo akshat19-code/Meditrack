@@ -58,7 +58,7 @@ public class BillingService {
                 savedBill.getTestCharge(), savedBill.getTotalAmount(), savedBill.getBillDate());
         fileManager.addDischargeHistoryEntry(patientId, savedBill.getBillDate(), savedBill.getTotalAmount());
 
-        System.out.println("Patient discharged. Total Bill: Rs." + savedBill.getTotalAmount());
+        System.out.println("Patient discharged. Total Bill: Rs." + String.format("%.2f", savedBill.getTotalAmount()));
         return true;
     }
 }

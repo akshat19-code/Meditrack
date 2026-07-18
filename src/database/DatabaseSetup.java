@@ -186,7 +186,7 @@ public class DatabaseSetup {
                     "ResultValue DOUBLE, " +
                     "ResultStatus VARCHAR(20), " +
                     "AnalysisDate DATE, " +
-                    "DoctorNotes VARCHAR(1000), " +
+                    "DoctorNotes VARCHAR(2000), " +
                     "TestRequestID INT UNIQUE, " +
                     "LabTechID INT, " +
                     "CONSTRAINT pk_report PRIMARY KEY (ReportID), " +

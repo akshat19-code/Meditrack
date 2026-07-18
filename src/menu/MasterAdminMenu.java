@@ -4,6 +4,7 @@ import dao.*;
 import ds.*;
 import model.*;
 import service.*;
+import util.InputValidator;
 
 import java.util.List;
 import java.util.Scanner;
@@ -30,11 +31,10 @@ public class MasterAdminMenu {
             System.out.println("===== Master Admin Menu =====");
             System.out.println("1. Register New Hospital");
             System.out.println("2. View All Hospitals");
-            System.out.println("3. Suspend / Reactivate / Remove Hospital");
+            System.out.println("3. Suspend / Reactivate Hospital");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
-            System.out.print("Enter choice: ");
-            int choice = sc.nextInt();
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
                 case 1 -> registerHospital();
@@ -60,18 +60,24 @@ public class MasterAdminMenu {
         sc.nextLine(); // clear leftover newline
         System.out.print("Hospital Code: ");
         String code = sc.nextLine();
+
+        // Duplicate HospitalCode check - this code is what every Admin/Doctor/
+        // LabTech/Patient types at login to identify their hospital, so a
+        // duplicate here would make login lookups ambiguous.
+        if (hospitalDAO.getHospitalByCode(code) != null) {
+            System.out.println("A hospital with this Hospital Code already exists.");
+            navStack.pop();
+            return;
+        }
+
         System.out.print("Hospital Name: ");
         String name = sc.nextLine();
         System.out.print("Street: ");
         String street = sc.nextLine();
-        System.out.print("City: ");
-        String city = sc.nextLine();
-        System.out.print("State: ");
-        String state = sc.nextLine();
-        System.out.print("Pincode: ");
-        String pincode = sc.nextLine();
-        System.out.print("Phone No: ");
-        String phone = sc.nextLine();
+        String city = InputValidator.readAlphabeticString(sc, "City: ");
+        String state = InputValidator.readAlphabeticString(sc, "State: ");
+        String pincode = InputValidator.readPincode(sc, "Pincode: ");
+        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
         System.out.print("Email: ");
         String email = sc.nextLine();
 
@@ -116,29 +122,60 @@ public class MasterAdminMenu {
     private void updateHospitalStatus() {
         navStack.push("UpdateHospitalStatus");
         System.out.println("\nPath: " + navStack.getPath());
-        System.out.println("\nAvailable Hospitals:");
 
+        // Show existing hospitals first, so Master Admin can see the ID and
+        // current status of each hospital before being asked to pick one -
+        // reuses the same getAllHospitals() call that "View All Hospitals" uses.
         List<Hospital> hospitals = hospitalDAO.getAllHospitals();
-
-        for (Hospital h : hospitals) {
-            System.out.println(
-                    h.getHospitalID() + " -> " +
-                            h.getHospitalCode() + " -> " +
-                            h.getHospitalName() +
-                            " (" + h.getStatus() + ")"
-            );
+        if (hospitals.isEmpty()) {
+            System.out.println("No hospitals registered yet.");
+            navStack.pop();
+            return;
         }
 
-        System.out.println();
+        System.out.println("---- Existing Hospitals ----");
+        for (Hospital h : hospitals) {
+            System.out.println(h);
+        }
+        System.out.println("----------------------------");
 
-        System.out.print("Enter Hospital ID: ");
-        int hospitalId = sc.nextInt();
-        System.out.print("New Status (ACTIVE / SUSPENDED / REMOVED): ");
-        String status = sc.next();
+        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
 
-        boolean success = hospitalDAO.updateHospitalStatus(hospitalId, status.toUpperCase());
+        Hospital h = hospitalDAO.getHospitalById(hospitalId);
+        if (h == null) {
+            System.out.println("Hospital not found.");
+            navStack.pop();
+            return;
+        }
+
+        if (h.getStatus().equalsIgnoreCase("REMOVED")) {
+            System.out.println("This hospital has been REMOVED and cannot be reactivated.");
+            navStack.pop();
+            return;
+        }
+
+        sc.nextLine(); // clear leftover newline before the menu prompt
+
+        String status = InputValidator.readMenuChoice(sc, "New Status:",
+                new String[]{"ACTIVE", "SUSPENDED", "REMOVED"},
+                new String[]{"ACTIVE", "SUSPENDED", "REMOVED"});
+
+        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+
+        // Confirmation prompt before a destructive/hard-to-reverse status change
+        if (status.equals("SUSPENDED") || status.equals("REMOVED")) {
+            System.out.print("Are you sure you want to set this hospital to " + status + "? (Y/N): ");
+            String confirm = sc.nextLine();
+            if (!confirm.equalsIgnoreCase("Y")) {
+                System.out.println("Status change cancelled.");
+                navStack.pop();
+                return;
+            }
+        }
+
+        boolean success = hospitalDAO.updateHospitalStatus(hospitalId, status);
         if (success) {
-            System.out.println("Hospital status updated to " + status.toUpperCase());
+            System.out.println("Hospital status updated to " + status);
         } else {
             System.out.println("Failed to update hospital status.");
         }

@@ -75,6 +75,6 @@ public class Doctor {
                 " | Specialization: " + specialization +
                 " | Department: " + department +
                 " | Patients: " + patientCount +
-                " | Fee: " + consultationFee;
+                " | Fee: Rs." + String.format("%.2f", consultationFee);
     }
 }

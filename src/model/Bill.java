@@ -41,10 +41,10 @@ public class Bill {
 
     public String toString() {
         return "Bill ID: " + billID +
-                " | Room Charge: Rs." + roomCharge +
-                " | Doctor Fee: Rs." + doctorFee +
-                " | Test Charge: Rs." + testCharge +
-                " | Total: Rs." + totalAmount +
+                " | Room Charge: Rs." + String.format("%.2f", roomCharge) +
+                " | Doctor Fee: Rs." + String.format("%.2f", doctorFee) +
+                " | Test Charge: Rs." + String.format("%.2f", testCharge) +
+                " | Total: Rs." + String.format("%.2f", totalAmount) +
                 " | Date: " + billDate;
     }
 }

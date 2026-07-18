@@ -4,6 +4,7 @@ import dao.*;
 import ds.*;
 import model.*;
 import service.*;
+import util.InputValidator;
 
 import java.util.Scanner;
 
@@ -16,6 +17,7 @@ public class LabTechnicianMenu {
     private QueueService queueService = new QueueService();
     private ReportAnalyser reportAnalyser = new ReportAnalyser();
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
+    private AdmissionDAO admissionDAO = new AdmissionDAO();
 
     public LabTechnicianMenu(Scanner sc, MenuStack navStack, LabTechnician lt) {
         this.sc = sc;
@@ -38,8 +40,7 @@ public class LabTechnicianMenu {
             System.out.println("3. Upload Result");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
-            System.out.print("Enter choice: ");
-            int choice = sc.nextInt();
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
                 case 1 -> viewQueue();
@@ -71,10 +72,18 @@ public class LabTechnicianMenu {
         navStack.push("ProcessNext");
         System.out.println("\nPath: " + navStack.getPath());
 
-        int testRequestId = queueService.processNextRequest();
-        if (testRequestId != -1) {
-            System.out.println("Now processing Test Request ID: " + testRequestId +
-                    " (remember this ID to upload its result next)");
+        // Uses processNextRequestWithDetails() instead of processNextRequest(),
+        // so the Lab Technician sees the patient name and test name right away
+        // instead of just a bare ID they'd have to look up separately.
+        String[] details = queueService.processNextRequestWithDetails();
+
+        if (details != null) {
+            System.out.println("Now processing:");
+            System.out.println("Request ID: " + details[0] +
+                    " | Patient: " + details[1] +
+                    " | Test: " + details[2] +
+                    " | Priority: " + details[3]);
+            System.out.println("(remember this Request ID to upload its result next)");
         }
 
         navStack.pop();
@@ -84,10 +93,26 @@ public class LabTechnicianMenu {
         navStack.push("UploadResult");
         System.out.println("\nPath: " + navStack.getPath());
 
-        System.out.print("Enter Test Request ID (that you are currently processing): ");
-        int testRequestId = sc.nextInt();
-        System.out.print("Enter Result Value: ");
-        double resultValue = sc.nextDouble();
+        int testRequestId = InputValidator.readInt(sc, "Enter Test Request ID (that you are currently processing): ");
+
+        TestRequest tr = testRequestDAO.getTestRequestById(testRequestId);
+        if (tr == null) {
+            System.out.println("Test request not found.");
+            navStack.pop();
+            return;
+        }
+
+        // Tenant isolation - this TestRequest's Admission must belong to the
+        // Lab Technician's own hospital, otherwise any Lab Tech could upload
+        // results for a test request from a completely different hospital.
+        Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
+        if (ad == null || ad.getHospitalID() != loggedInLabTech.getHospitalID()) {
+            System.out.println("This test request does not belong to your hospital.");
+            navStack.pop();
+            return;
+        }
+
+        double resultValue = InputValidator.readDouble(sc, "Enter Result Value: ");
 
         String analysisDate = java.time.LocalDate.now().toString();
 

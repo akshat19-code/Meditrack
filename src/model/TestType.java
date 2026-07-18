@@ -47,8 +47,8 @@ public class TestType {
     public String toString() {
         return "Test ID: " + testTypeID +
                 " | Test: " + testName +
-                " | Normal Range: " + normalMin + " - " + normalMax +
+                " | Normal Range: " + String.format("%.2f", normalMin) + " - " + String.format("%.2f", normalMax) +
                 " " + unit +
-                " | Charge: Rs." + testCharge;
+                " | Charge: Rs." + String.format("%.2f", testCharge);
     }
 }

@@ -5,6 +5,7 @@ import ds.MenuStack;
 import model.*;
 import service.QueueService;
 import service.FileManager;
+import util.InputValidator;
 
 import java.util.List;
 import java.util.Scanner;
@@ -41,8 +42,7 @@ public class DoctorMenu {
             System.out.println("3. Review Report / Add Diagnosis Notes");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
-            System.out.print("Enter choice: ");
-            int choice = sc.nextInt();
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
                 case 1 -> viewAssignedPatients();
@@ -66,9 +66,6 @@ public class DoctorMenu {
         System.out.println("\nPath: " + navStack.getPath());
         System.out.println("Logged In Doctor ID = " + loggedInDoctor.getDoctorID());
 
-        // Uses PatientSummaryView (Patient + Admission + Doctor + Hospital already
-        // joined) instead of the old approach of fetching a List<Admission> and then
-        // calling patientDAO.getPatientById() once per admission (N+1 queries).
         List<String> summaries = admissionDAO.getActivePatientSummariesByDoctor(loggedInDoctor.getDoctorID());
 
         if (summaries.isEmpty()) {
@@ -86,12 +83,23 @@ public class DoctorMenu {
         navStack.push("RequestTest");
         System.out.println("\nPath: " + navStack.getPath());
 
-        System.out.print("Enter Admission ID: ");
-        int admissionId = sc.nextInt();
+        int admissionId = InputValidator.readInt(sc, "Enter Admission ID: ");
 
         Admission ad = admissionDAO.getAdmissionById(admissionId);
         if (ad == null) {
             System.out.println("Admission not found.");
+            navStack.pop();
+            return;
+        }
+
+        if (ad.getHospitalID() != loggedInDoctor.getHospitalID()) {
+            System.out.println("This admission does not belong to your hospital.");
+            navStack.pop();
+            return;
+        }
+
+        if (ad.getDoctorID() != loggedInDoctor.getDoctorID()) {
+            System.out.println("This patient is not assigned to you.");
             navStack.pop();
             return;
         }
@@ -102,15 +110,15 @@ public class DoctorMenu {
             System.out.println(tt);
         }
 
-        System.out.print("Enter Test Type ID: ");
-        int testTypeId = sc.nextInt();
+        int testTypeId = InputValidator.readInt(sc, "Enter Test Type ID: ");
         sc.nextLine();
 
-        System.out.print("Priority (NORMAL/EMERGENCY): ");
-        String priority = sc.nextLine();
+        String priority = InputValidator.readMenuChoice(sc, "Priority:",
+                new String[]{"NORMAL", "EMERGENCY"},
+                new String[]{"NORMAL", "EMERGENCY"});
+        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
 
-        System.out.print("Equipment Usage Date (yyyy-mm-dd): ");
-        String equipmentUsageDate = sc.nextLine();
+        String equipmentUsageDate = InputValidator.readDate(sc, "Equipment Usage Date (yyyy-mm-dd): ", false);
 
         TestType selectedTest = testTypeDAO.getTestTypeById(testTypeId);
         if (selectedTest == null) {
@@ -124,7 +132,7 @@ public class DoctorMenu {
         TestRequest tr = new TestRequest();
         tr.setRequestDate(java.time.LocalDate.now().toString());
         tr.setEquipmentUsageDate(equipmentUsageDate);
-        tr.setPriority(priority.toUpperCase());
+        tr.setPriority(priority);
         tr.setStatus("PENDING");
         tr.setAdmissionID(admissionId);
         tr.setDoctorID(loggedInDoctor.getDoctorID());
@@ -144,13 +152,27 @@ public class DoctorMenu {
         navStack.push("ReviewReport");
         System.out.println("\nPath: " + navStack.getPath());
 
-        System.out.print("Enter Report ID: ");
-        int reportId = sc.nextInt();
+        int reportId = InputValidator.readInt(sc, "Enter Report ID: ");
         sc.nextLine();
 
         Report r = reportDAO.getReportById(reportId);
         if (r == null) {
             System.out.println("Report not found.");
+            navStack.pop();
+            return;
+        }
+
+        TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
+        Admission ad = (tr != null) ? admissionDAO.getAdmissionById(tr.getAdmissionID()) : null;
+
+        if (ad == null) {
+            System.out.println("Could not verify this report's admission details.");
+            navStack.pop();
+            return;
+        }
+
+        if (ad.getHospitalID() != loggedInDoctor.getHospitalID() || ad.getDoctorID() != loggedInDoctor.getDoctorID()) {
+            System.out.println("This report does not belong to one of your patients.");
             navStack.pop();
             return;
         }
@@ -162,21 +184,11 @@ public class DoctorMenu {
         boolean success = reportDAO.updateDoctorNotes(reportId, notes);
 
         if (success) {
-
-            TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
-            Admission adForNotes = (tr != null) ? admissionDAO.getAdmissionById(tr.getAdmissionID()) : null;
-
-            if (adForNotes != null) {
-                fileManager.appendDiagnosisToReportFile(reportId, notes);
-                fileManager.addDiagnosisHistoryEntry(adForNotes.getPatientID(), reportId, loggedInDoctor.getName());
-            }
-
+            fileManager.appendDiagnosisToReportFile(reportId, notes);
+            fileManager.addDiagnosisHistoryEntry(ad.getPatientID(), reportId, loggedInDoctor.getName());
             System.out.println("Notes added successfully!");
-
         } else {
-
             System.out.println("Failed to add notes.");
-
         }
 
         navStack.pop();

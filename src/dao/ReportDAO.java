@@ -77,15 +77,35 @@ public class ReportDAO {
         return null;
     }
 
-    // Update DoctorNotes only - called when Doctor reviews a report and adds diagnosis notes
-    public boolean updateDoctorNotes(int reportId, String doctorNotes) {
+    // Update DoctorNotes - called when Doctor reviews a report and adds diagnosis notes.
+    // APPENDS the new note onto whatever was already there (separated by a divider)
+    // instead of overwriting it, so the database stays consistent with Report_<ID>.txt,
+    // which already appends every new note onto the bottom of the file. Fetches the
+    // existing Report first, since we need its current DoctorNotes value to build the
+    // combined string before writing it back.
+    public boolean updateDoctorNotes(int reportId, String newNote) {
+        Report existing = getReportById(reportId);
+        if (existing == null) {
+            System.out.println("Report not found - cannot update notes.");
+            return false;
+        }
+
+        String oldNotes = existing.getDoctorNotes();
+        String combinedNotes;
+
+        if (oldNotes == null || oldNotes.isBlank()) {
+            combinedNotes = newNote;
+        } else {
+            combinedNotes = oldNotes + "\n----------\n" + newNote;
+        }
+
         String query = "UPDATE Report SET DoctorNotes = ? WHERE ReportID = ?";
 
         Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
-            pstmt.setString(1, doctorNotes);
+            pstmt.setString(1, combinedNotes);
             pstmt.setInt(2, reportId);
 
             int rows = pstmt.executeUpdate();

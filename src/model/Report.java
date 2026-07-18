@@ -42,7 +42,7 @@ public class Report {
 
     public String toString() {
         return "Report ID: " + reportID +
-                " | Result: " + resultValue +
+                " | Result: " + String.format("%.2f", resultValue) +
                 " | Status: " + resultStatus +
                 " | Date: " + analysisDate +
                 " | Notes: " + doctorNotes;

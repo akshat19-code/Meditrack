@@ -4,8 +4,9 @@ import dao.*;
 import ds.*;
 import model.*;
 import service.*;
+import util.*;
 
-import java.util.Scanner;
+import java.util.*;
 
 public class MainMenu {
 
@@ -31,8 +32,7 @@ public class MainMenu {
             System.out.println("4. Lab Technician Login");
             System.out.println("5. Patient Login");
             System.out.println("9. Exit Application");
-            System.out.print("Enter choice: ");
-            int choice = sc.nextInt();
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
                 case 1 -> masterAdminLoginFlow();

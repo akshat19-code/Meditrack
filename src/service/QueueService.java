@@ -134,6 +134,33 @@ public class QueueService {
         return testRequestId;
     }
 
+    // Same as processNextRequest(), but also returns the patient name and test
+    // name that the QueueEntry already had in memory, instead of throwing them
+    // away and forcing the Lab Technician to look the ID up separately.
+    // Array layout: [0] = TestRequestID, [1] = PatientName, [2] = TestName, [3] = Priority.
+    // Returns null if the queue is empty (equivalent to the old -1 return).
+    public String[] processNextRequestWithDetails() {
+        QueueEntry entry;
+
+        if (!emergencyQueue.isEmpty()) {
+            entry = emergencyQueue.poll();
+        } else if (!normalQueue.isEmpty()) {
+            entry = normalQueue.poll();
+        } else {
+            System.out.println("No pending test requests.");
+            return null;
+        }
+
+        testRequestDAO.updateTestRequestStatus(entry.testRequestId, "PROCESSING");
+
+        return new String[] {
+                String.valueOf(entry.testRequestId),
+                entry.patientName,
+                entry.testName,
+                entry.priority
+        };
+    }
+
     // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
     // public int processNextRequest() {
     //     if (testRequestQueue.isEmpty()) {

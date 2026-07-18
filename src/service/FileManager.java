@@ -57,7 +57,7 @@ public class FileManager {
     // both the Bill insert and the Admission status update succeed.
     public void addDischargeHistoryEntry(int patientId, String dischargeDate, double totalBillAmount) {
         String summary = "DISCHARGED on " + dischargeDate +
-                " | Final Bill: Rs." + totalBillAmount;
+                " | Final Bill: Rs." + String.format("%.2f", totalBillAmount);
 
         appendToPatientHistory(patientId, summary);
     }
@@ -120,7 +120,7 @@ public class FileManager {
         content.append("Test Request ID  : ").append(testRequestId).append("\n");
         content.append("Patient Name     : ").append(patientName).append("\n");
         content.append("Test Name        : ").append(testName).append("\n");
-        content.append("Result Value     : ").append(resultValue).append("\n");
+        content.append("Result Value     : ").append(String.format("%.2f", resultValue)).append("\n");
         content.append("Result Status    : ").append(resultStatus).append("\n");
         content.append("Analysis Date    : ").append(analysisDate).append("\n");
         content.append("Lab Technician   : ").append(labTechName).append("\n");
@@ -171,11 +171,11 @@ public class FileManager {
         content.append("Patient Name     : ").append(patientName).append("\n");
         content.append("Doctor           : ").append(doctorName).append("\n");
         content.append("------------------------------------\n");
-        content.append("Room Charge      : Rs.").append(roomCharge).append("\n");
-        content.append("Doctor Fee       : Rs.").append(doctorFee).append("\n");
-        content.append("Test Charge      : Rs.").append(testCharge).append("\n");
+        content.append("Room Charge      : Rs.").append(String.format("%.2f", roomCharge)).append("\n");
+        content.append("Doctor Fee       : Rs.").append(String.format("%.2f", doctorFee)).append("\n");
+        content.append("Test Charge      : Rs.").append(String.format("%.2f", testCharge)).append("\n");
         content.append("------------------------------------\n");
-        content.append("TOTAL AMOUNT     : Rs.").append(totalAmount).append("\n");
+        content.append("TOTAL AMOUNT     : Rs.").append(String.format("%.2f", totalAmount)).append("\n");
         content.append("Bill Date        : ").append(billDate).append("\n");
         content.append("====================================\n");
 
@@ -228,7 +228,7 @@ public class FileManager {
     private void appendToFile(String fileName, String newContent) {
         File file = new File(fileName);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
             writer.write(newContent);
         } catch (IOException e) {
             System.out.println("Error appending to file: " + e.getMessage());
