@@ -151,7 +151,6 @@ public class PatientDAO {
         p.setState(rs.getString("State"));
         p.setPincode(rs.getString("Pincode"));
         p.setHospitalID(rs.getInt("HospitalID"));
-        p.setName(rs.getString("Name"));
         return p;
     }
 }
