@@ -42,6 +42,7 @@ public class PatientMenu {
             System.out.println("3. View Health Score");
             System.out.println("4. View Admission Status & Bill");
             System.out.println("5. View My History");
+            System.out.println("6. Change Password");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -52,6 +53,7 @@ public class PatientMenu {
                 case 3 -> viewHealthScore();
                 case 4 -> viewAdmissionAndBill();
                 case 5 -> viewMyHistory();
+                case 6 -> changePassword();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -181,6 +183,41 @@ public class PatientMenu {
 
         String history = fileManager.readPatientHistory(loggedInPatient.getPatientID());
         System.out.println(history);
+
+        navStack.pop();
+    }
+
+    // Same pattern as the other four roles' Change Password.
+    private void changePassword() {
+        navStack.push("ChangePassword");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        sc.nextLine();
+        System.out.print("Enter Current Password: ");
+        String currentPassword = sc.nextLine();
+
+        if (!loggedInPatient.getPassword().equals(currentPassword)) {
+            System.out.println("Incorrect current password.");
+            navStack.pop();
+            return;
+        }
+
+        String newPassword = InputValidator.readNonEmptyString(sc, "Enter New Password: ");
+        String confirmPassword = InputValidator.readNonEmptyString(sc, "Confirm New Password: ");
+
+        if (!newPassword.equals(confirmPassword)) {
+            System.out.println("New passwords do not match. Password not changed.");
+            navStack.pop();
+            return;
+        }
+
+        boolean success = patientDAO.updatePassword(loggedInPatient.getPatientID(), newPassword);
+        if (success) {
+            loggedInPatient.setPassword(newPassword);
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password.");
+        }
 
         navStack.pop();
     }

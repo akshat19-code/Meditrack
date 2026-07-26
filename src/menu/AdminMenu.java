@@ -24,6 +24,7 @@ public class AdminMenu {
     private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
     private HospitalDAO hospitalDAO = new HospitalDAO();
+    private AdminDAO adminDAO = new AdminDAO();
     private WorkloadManager workloadManager = new WorkloadManager();
     private BillingService billingService = new BillingService();
     private FileManager fileManager = new FileManager();
@@ -52,6 +53,7 @@ public class AdminMenu {
             System.out.println("9. View Equipment");
             System.out.println("10. View Login Log");
             System.out.println("11. View Patients");
+            System.out.println("12. Change Password");
             System.out.println("0. Back");
             System.out.println("99. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -68,6 +70,7 @@ public class AdminMenu {
                 case 9 -> viewEquipment();
                 case 10 -> viewLoginLog();
                 case 11 -> viewPatients();
+                case 12 -> changePassword();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -472,6 +475,44 @@ public class AdminMenu {
             for (Patient p : patients) {
                 System.out.println(p);
             }
+        }
+
+        navStack.pop();
+    }
+
+    // Same pattern as Master Admin's Change Password - verify current
+    // password, ask new password twice, update DB and the in-memory
+    // loggedInAdmin object together so a repeat change in the same
+    // session compares against the fresh password, not a stale one.
+    private void changePassword() {
+        navStack.push("ChangePassword");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        sc.nextLine();
+        System.out.print("Enter Current Password: ");
+        String currentPassword = sc.nextLine();
+
+        if (!loggedInAdmin.getPassword().equals(currentPassword)) {
+            System.out.println("Incorrect current password.");
+            navStack.pop();
+            return;
+        }
+
+        String newPassword = InputValidator.readNonEmptyString(sc, "Enter New Password: ");
+        String confirmPassword = InputValidator.readNonEmptyString(sc, "Confirm New Password: ");
+
+        if (!newPassword.equals(confirmPassword)) {
+            System.out.println("New passwords do not match. Password not changed.");
+            navStack.pop();
+            return;
+        }
+
+        boolean success = adminDAO.updatePassword(loggedInAdmin.getAdminID(), newPassword);
+        if (success) {
+            loggedInAdmin.setPassword(newPassword);
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password.");
         }
 
         navStack.pop();

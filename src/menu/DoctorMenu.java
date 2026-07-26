@@ -21,6 +21,7 @@ public class DoctorMenu {
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
     private ReportDAO reportDAO = new ReportDAO();
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
+    private DoctorDAO doctorDAO = new DoctorDAO();
     private QueueService queueService = new QueueService();
     private FileManager fileManager = new FileManager();
 
@@ -40,6 +41,7 @@ public class DoctorMenu {
             System.out.println("1. View Assigned Patients");
             System.out.println("2. Request Lab Test");
             System.out.println("3. Review Report / Add Diagnosis Notes");
+            System.out.println("4. Change Password");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -48,6 +50,7 @@ public class DoctorMenu {
                 case 1 -> viewAssignedPatients();
                 case 2 -> requestTest();
                 case 3 -> reviewReport();
+                case 4 -> changePassword();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -116,7 +119,7 @@ public class DoctorMenu {
         String priority = InputValidator.readMenuChoice(sc, "Priority:",
                 new String[]{"NORMAL", "EMERGENCY"},
                 new String[]{"NORMAL", "EMERGENCY"});
-        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+        sc.nextLine();
 
         String equipmentUsageDate = InputValidator.readDate(sc, "Equipment Usage Date (yyyy-mm-dd): ", false);
 
@@ -189,6 +192,41 @@ public class DoctorMenu {
             System.out.println("Notes added successfully!");
         } else {
             System.out.println("Failed to add notes.");
+        }
+
+        navStack.pop();
+    }
+
+    // Same pattern as Master Admin / Hospital Admin's Change Password.
+    private void changePassword() {
+        navStack.push("ChangePassword");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        sc.nextLine();
+        System.out.print("Enter Current Password: ");
+        String currentPassword = sc.nextLine();
+
+        if (!loggedInDoctor.getPassword().equals(currentPassword)) {
+            System.out.println("Incorrect current password.");
+            navStack.pop();
+            return;
+        }
+
+        String newPassword = InputValidator.readNonEmptyString(sc, "Enter New Password: ");
+        String confirmPassword = InputValidator.readNonEmptyString(sc, "Confirm New Password: ");
+
+        if (!newPassword.equals(confirmPassword)) {
+            System.out.println("New passwords do not match. Password not changed.");
+            navStack.pop();
+            return;
+        }
+
+        boolean success = doctorDAO.updatePassword(loggedInDoctor.getDoctorID(), newPassword);
+        if (success) {
+            loggedInDoctor.setPassword(newPassword);
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password.");
         }
 
         navStack.pop();

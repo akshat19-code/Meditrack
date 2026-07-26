@@ -59,6 +59,26 @@ public class AdminDAO {
         return null;
     }
 
+    // Update Password only - called when an Admin uses "Change Password"
+    public boolean updatePassword(int adminId, String newPassword) {
+        String query = "UPDATE Admin SET Password = ? WHERE AdminID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, newPassword);
+            pstmt.setInt(2, adminId);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating Admin password: " + e.getMessage());
+            return false;
+        }
+    }
+
     // Helper method - builds an Admin object from a ResultSet row
     private Admin buildAdminFromResultSet(ResultSet rs) throws SQLException {
         Admin a = new Admin();

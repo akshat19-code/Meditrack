@@ -34,4 +34,24 @@ public class MasterAdminDAO {
         }
         return null;
     }
+
+    // Update Password only - called when Master Admin uses "Change Password"
+    public boolean updatePassword(int masterAdminId, String newPassword) {
+        String query = "UPDATE MasterAdmin SET Password = ? WHERE MasterAdminID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, newPassword);
+            pstmt.setInt(2, masterAdminId);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating MasterAdmin password: " + e.getMessage());
+            return false;
+        }
+    }
 }

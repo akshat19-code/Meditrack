@@ -103,6 +103,26 @@ public class LabTechnicianDAO {
         return labTechList;
     }
 
+    // Update Password only - called when a Lab Technician uses "Change Password"
+    public boolean updatePassword(int labTechId, String newPassword) {
+        String query = "UPDATE LabTechnician SET Password = ? WHERE LabTechID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, newPassword);
+            pstmt.setInt(2, labTechId);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating LabTechnician password: " + e.getMessage());
+            return false;
+        }
+    }
+
     // Helper method - builds a LabTechnician object from a ResultSet row
     private LabTechnician buildLabTechFromResultSet(ResultSet rs) throws SQLException {
         LabTechnician lt = new LabTechnician();

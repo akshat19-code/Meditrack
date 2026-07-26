@@ -15,6 +15,7 @@ public class MasterAdminMenu {
     private MenuStack navStack;
     private MasterAdmin loggedInMasterAdmin;
     private HospitalDAO hospitalDAO = new HospitalDAO();
+    private MasterAdminDAO masterAdminDAO = new MasterAdminDAO();
     private FileManager fileManager = new FileManager();
 
     public MasterAdminMenu(Scanner sc, MenuStack navStack, MasterAdmin ma) {
@@ -35,6 +36,7 @@ public class MasterAdminMenu {
             System.out.println("3. Suspend / Reactivate Hospital");
             System.out.println("4. View Combined Login Log (All Hospitals)");
             System.out.println("5. View Login Log For One Hospital");
+            System.out.println("6. Change Password");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -45,6 +47,7 @@ public class MasterAdminMenu {
                 case 3 -> updateHospitalStatus();
                 case 4 -> viewCombinedLoginLog();
                 case 5 -> viewLoginLogForOneHospital();
+                case 6 -> changePassword();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -181,9 +184,6 @@ public class MasterAdminMenu {
         navStack.pop();
     }
 
-    // Shows the single combined SystemLoginLog.txt - every role, every
-    // hospital, already naturally time-ordered newest-first since every
-    // entry is prepended the moment it happens. No merging or sorting needed.
     private void viewCombinedLoginLog() {
         navStack.push("ViewCombinedLoginLog");
         System.out.println("\nPath: " + navStack.getPath());
@@ -194,10 +194,6 @@ public class MasterAdminMenu {
         navStack.pop();
     }
 
-    // Numbered picker built from the same hospital list View All Hospitals
-    // already uses. readMenuChoice's "values" array is set to each Hospital's
-    // Code (not its name), so the number Master Admin picks resolves directly
-    // to the HospitalCode that FileManager needs to open the right log file.
     private void viewLoginLogForOneHospital() {
         navStack.push("ViewLoginLogForOneHospital");
         System.out.println("\nPath: " + navStack.getPath());
@@ -223,6 +219,46 @@ public class MasterAdminMenu {
 
         String log = fileManager.readHospitalLoginLog(selectedCode);
         System.out.println(log);
+
+        navStack.pop();
+    }
+
+    // Asks for the CURRENT password first (proves it's really the logged-in
+    // Master Admin typing, not just anyone at an unlocked session), then the
+    // new password twice (typo protection - mismatched entries are rejected
+    // before anything is saved). Updates the in-memory loggedInMasterAdmin
+    // object too after a successful change, so a second Change Password in
+    // this same session compares against the NEW password, not a stale one.
+    private void changePassword() {
+        navStack.push("ChangePassword");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        sc.nextLine();
+        System.out.print("Enter Current Password: ");
+        String currentPassword = sc.nextLine();
+
+        if (!loggedInMasterAdmin.getPassword().equals(currentPassword)) {
+            System.out.println("Incorrect current password.");
+            navStack.pop();
+            return;
+        }
+
+        String newPassword = InputValidator.readNonEmptyString(sc, "Enter New Password: ");
+        String confirmPassword = InputValidator.readNonEmptyString(sc, "Confirm New Password: ");
+
+        if (!newPassword.equals(confirmPassword)) {
+            System.out.println("New passwords do not match. Password not changed.");
+            navStack.pop();
+            return;
+        }
+
+        boolean success = masterAdminDAO.updatePassword(loggedInMasterAdmin.getMasterAdminID(), newPassword);
+        if (success) {
+            loggedInMasterAdmin.setPassword(newPassword);
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password.");
+        }
 
         navStack.pop();
     }

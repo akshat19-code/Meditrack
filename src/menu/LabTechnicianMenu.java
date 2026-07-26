@@ -18,6 +18,7 @@ public class LabTechnicianMenu {
     private ReportAnalyser reportAnalyser = new ReportAnalyser();
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
     private AdmissionDAO admissionDAO = new AdmissionDAO();
+    private LabTechnicianDAO labTechDAO = new LabTechnicianDAO();
 
     public LabTechnicianMenu(Scanner sc, MenuStack navStack, LabTechnician lt) {
         this.sc = sc;
@@ -38,6 +39,7 @@ public class LabTechnicianMenu {
             System.out.println("1. View Pending Test Requests");
             System.out.println("2. Process Next Request");
             System.out.println("3. Upload Result");
+            System.out.println("4. Change Password");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -46,6 +48,7 @@ public class LabTechnicianMenu {
                 case 1 -> viewQueue();
                 case 2 -> processNext();
                 case 3 -> uploadResult();
+                case 4 -> changePassword();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -72,9 +75,6 @@ public class LabTechnicianMenu {
         navStack.push("ProcessNext");
         System.out.println("\nPath: " + navStack.getPath());
 
-        // Uses processNextRequestWithDetails() instead of processNextRequest(),
-        // so the Lab Technician sees the patient name and test name right away
-        // instead of just a bare ID they'd have to look up separately.
         String[] details = queueService.processNextRequestWithDetails();
 
         if (details != null) {
@@ -102,9 +102,6 @@ public class LabTechnicianMenu {
             return;
         }
 
-        // Tenant isolation - this TestRequest's Admission must belong to the
-        // Lab Technician's own hospital, otherwise any Lab Tech could upload
-        // results for a test request from a completely different hospital.
         Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
         if (ad == null || ad.getHospitalID() != loggedInLabTech.getHospitalID()) {
             System.out.println("This test request does not belong to your hospital.");
@@ -120,6 +117,41 @@ public class LabTechnicianMenu {
                 testRequestId, resultValue, analysisDate, loggedInLabTech.getLabTechID());
 
         System.out.println(success ? "Report generated successfully!" : "Failed to generate report.");
+
+        navStack.pop();
+    }
+
+    // Same pattern as the other four roles' Change Password.
+    private void changePassword() {
+        navStack.push("ChangePassword");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        sc.nextLine();
+        System.out.print("Enter Current Password: ");
+        String currentPassword = sc.nextLine();
+
+        if (!loggedInLabTech.getPassword().equals(currentPassword)) {
+            System.out.println("Incorrect current password.");
+            navStack.pop();
+            return;
+        }
+
+        String newPassword = InputValidator.readNonEmptyString(sc, "Enter New Password: ");
+        String confirmPassword = InputValidator.readNonEmptyString(sc, "Confirm New Password: ");
+
+        if (!newPassword.equals(confirmPassword)) {
+            System.out.println("New passwords do not match. Password not changed.");
+            navStack.pop();
+            return;
+        }
+
+        boolean success = labTechDAO.updatePassword(loggedInLabTech.getLabTechID(), newPassword);
+        if (success) {
+            loggedInLabTech.setPassword(newPassword);
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password.");
+        }
 
         navStack.pop();
     }

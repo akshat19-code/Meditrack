@@ -30,7 +30,7 @@ public class DoctorDAO {
             pstmt.setString(9, d.getDepartment());
             pstmt.setString(10, d.getQualification());
             pstmt.setDouble(11, d.getConsultationFee());
-            pstmt.setInt(12, 0);   // new doctor always starts with 0 patients
+            pstmt.setInt(12, 0);
             pstmt.setInt(13, d.getHospitalID());
 
             int rows = pstmt.executeUpdate();
@@ -107,6 +107,26 @@ public class DoctorDAO {
             System.out.println("Error fetching Doctors: " + e.getMessage());
         }
         return doctorList;
+    }
+
+    // Update Password only - called when a Doctor uses "Change Password"
+    public boolean updatePassword(int doctorId, String newPassword) {
+        String query = "UPDATE Doctor SET Password = ? WHERE DoctorID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, newPassword);
+            pstmt.setInt(2, doctorId);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating Doctor password: " + e.getMessage());
+            return false;
+        }
     }
 
     // Helper method - builds a Doctor object from a ResultSet row

@@ -113,7 +113,6 @@ public class PatientDAO {
     }
 
     // Fetch all Patients in a Hospital - used by Admin when viewing the patient list
-    // (mirrors DoctorDAO.getAllDoctorsByHospital() / LabTechnicianDAO.getAllLabTechniciansByHospital())
     public List<Patient> getAllPatientsByHospital(int hospitalId) {
         List<Patient> patientList = new ArrayList<>();
         String query = "SELECT * FROM Patient WHERE HospitalID = ?";
@@ -154,6 +153,26 @@ public class PatientDAO {
         } catch (SQLException e) {
             System.out.println("Error calculating age: " + e.getMessage());
             return -1;
+        }
+    }
+
+    // Update Password only - called when a Patient uses "Change Password"
+    public boolean updatePassword(int patientId, String newPassword) {
+        String query = "UPDATE Patient SET Password = ? WHERE PatientID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, newPassword);
+            pstmt.setInt(2, patientId);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating Patient password: " + e.getMessage());
+            return false;
         }
     }
 
