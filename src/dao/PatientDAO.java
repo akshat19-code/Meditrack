@@ -4,6 +4,8 @@ import database.DatabaseConnection;
 import model.Patient;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PatientDAO {
 
@@ -108,6 +110,29 @@ public class PatientDAO {
             System.out.println("Error checking returning Patient: " + e.getMessage());
         }
         return null;
+    }
+
+    // Fetch all Patients in a Hospital - used by Admin when viewing the patient list
+    // (mirrors DoctorDAO.getAllDoctorsByHospital() / LabTechnicianDAO.getAllLabTechniciansByHospital())
+    public List<Patient> getAllPatientsByHospital(int hospitalId) {
+        List<Patient> patientList = new ArrayList<>();
+        String query = "SELECT * FROM Patient WHERE HospitalID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                patientList.add(buildPatientFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Patients: " + e.getMessage());
+        }
+        return patientList;
     }
 
     // Calculates a Patient's current age from their DOB using the database's

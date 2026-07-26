@@ -23,6 +23,7 @@ public class AdminMenu {
     private AdmissionDAO admissionDAO = new AdmissionDAO();
     private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
+    private HospitalDAO hospitalDAO = new HospitalDAO();
     private WorkloadManager workloadManager = new WorkloadManager();
     private BillingService billingService = new BillingService();
     private FileManager fileManager = new FileManager();
@@ -49,6 +50,8 @@ public class AdminMenu {
             System.out.println("7. View Lab Technicians");
             System.out.println("8. View Test Types");
             System.out.println("9. View Equipment");
+            System.out.println("10. View Login Log");
+            System.out.println("11. View Patients");
             System.out.println("0. Back");
             System.out.println("99. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -63,6 +66,8 @@ public class AdminMenu {
                 case 7 -> viewLabTechnicians();
                 case 8 -> viewTestTypes();
                 case 9 -> viewEquipment();
+                case 10 -> viewLoginLog();
+                case 11 -> viewPatients();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -85,7 +90,6 @@ public class AdminMenu {
         String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
         String username = InputValidator.readNonEmptyString(sc, "Username: ");
 
-        // Duplicate username check - must be unique within this hospital
         if (doctorDAO.getDoctorByUsername(username, loggedInAdmin.getHospitalID()) != null) {
             System.out.println("A doctor with this username already exists in your hospital.");
             navStack.pop();
@@ -128,7 +132,6 @@ public class AdminMenu {
         String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
         String username = InputValidator.readNonEmptyString(sc, "Username: ");
 
-        // Duplicate username check - must be unique within this hospital
         if (labTechDAO.getLabTechnicianByUsername(username, loggedInAdmin.getHospitalID()) != null) {
             System.out.println("A lab technician with this username already exists in your hospital.");
             navStack.pop();
@@ -172,12 +175,12 @@ public class AdminMenu {
         String gender = InputValidator.readMenuChoice(sc, "Gender:",
                 new String[]{"MALE", "FEMALE", "OTHER"},
                 new String[]{"MALE", "FEMALE", "OTHER"});
-        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+        sc.nextLine();
 
         String bloodGroup = InputValidator.readMenuChoice(sc, "Blood Group:",
                 new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"},
                 new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"});
-        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+        sc.nextLine();
 
         String street = InputValidator.readNonEmptyString(sc, "Street: ");
         String city = InputValidator.readAlphabeticString(sc, "City: ");
@@ -186,9 +189,6 @@ public class AdminMenu {
 
         String fullName = firstName + " " + lastName;
 
-        // Check if this is a returning patient (same Name + DOB in this hospital)
-        // BEFORE inserting, so we reuse the existing Patient row instead of
-        // creating a duplicate one.
         Patient existingPatient = patientDAO.findReturningPatient(fullName, dob, loggedInAdmin.getHospitalID());
         Patient newPatient;
 
@@ -196,7 +196,6 @@ public class AdminMenu {
             System.out.println("Returning patient detected - reusing existing patient record.");
             newPatient = existingPatient;
         } else {
-            // Duplicate username check - only relevant when we're actually inserting a new Patient row
             if (patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID()) != null) {
                 System.out.println("A patient with this username already exists in your hospital.");
                 navStack.pop();
@@ -230,7 +229,6 @@ public class AdminMenu {
             newPatient = patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID());
         }
 
-        // Assign a doctor - returning patient gets previous doctor, else least busy
         Doctor assignedDoctor = workloadManager.assignDoctor(
                 fullName, dob, loggedInAdmin.getHospitalID());
 
@@ -245,7 +243,7 @@ public class AdminMenu {
         String roomType = InputValidator.readMenuChoice(sc, "Room Type:",
                 new String[]{"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"},
                 new String[]{"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"});
-        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+        sc.nextLine();
 
         double roomCharge = InputValidator.readPositiveDouble(sc, "Room Charge: ");
         sc.nextLine();
@@ -263,9 +261,6 @@ public class AdminMenu {
         ad.setAdminID(loggedInAdmin.getAdminID());
         ad.setHospitalID(loggedInAdmin.getHospitalID());
 
-        // NOTE: Doctor.PatientCount is now incremented automatically by the
-        // UpdateDoctorPatientCount trigger (fires AFTER INSERT ON Admission) -
-        // no manual increment needed here anymore.
         boolean admissionAdded = admissionDAO.insertAdmission(ad);
         if (admissionAdded) {
             System.out.println("Admission created successfully! Assigned Doctor: " + assignedDoctor.getName());
@@ -287,7 +282,6 @@ public class AdminMenu {
 
         int hospitalId = loggedInAdmin.getHospitalID();
 
-        // Duplicate check - same TestName should not exist twice in the same hospital
         List<TestType> existingTestTypes = testTypeDAO.getAllTestTypesByHospital(hospitalId);
         for (TestType existing : existingTestTypes) {
             if (existing.getTestName().equalsIgnoreCase(testName)) {
@@ -312,7 +306,6 @@ public class AdminMenu {
         sc.nextLine();
         String equipmentName = InputValidator.readNonEmptyString(sc, "Equipment Name Required: ");
 
-        // Case-insensitive, hospital-scoped check - reuse existing Equipment if it exists
         Equipment existingEquipment = equipmentDAO.findByEquipmentName(equipmentName, hospitalId);
         int equipmentId;
 
@@ -445,6 +438,39 @@ public class AdminMenu {
         } else {
             for (Equipment eq : equipmentList) {
                 System.out.println(eq);
+            }
+        }
+
+        navStack.pop();
+    }
+
+    private void viewLoginLog() {
+        navStack.push("ViewLoginLog");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        Hospital h = hospitalDAO.getHospitalById(loggedInAdmin.getHospitalID());
+        if (h == null) {
+            System.out.println("Could not determine your hospital.");
+            navStack.pop();
+            return;
+        }
+
+        String log = fileManager.readHospitalLoginLog(h.getHospitalCode());
+        System.out.println(log);
+
+        navStack.pop();
+    }
+
+    private void viewPatients() {
+        navStack.push("ViewPatients");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Patient> patients = patientDAO.getAllPatientsByHospital(loggedInAdmin.getHospitalID());
+        if (patients.isEmpty()) {
+            System.out.println("No patients found.");
+        } else {
+            for (Patient p : patients) {
+                System.out.println(p);
             }
         }
 

@@ -5,11 +5,20 @@ import java.io.*;
 public class FileManager {
 
     // ================================================================
-    // SYSTEM LOGIN LOG  (SystemLoginLog.txt)
-    // Single shared file for every role's login attempts, newest on top.
+    // SYSTEM LOGIN LOG
+    // Every login attempt is written to TWO places:
+    //   1. SystemLoginLog.txt - the combined, all-hospitals log. Used for
+    //      Master Admin's system-wide view. Already naturally time-ordered
+    //      (newest on top) since every entry is prepended as it happens -
+    //      no separate merging or sorting needed later.
+    //   2. SystemLoginLog_<HospitalCode>.txt - one file per hospital. Used
+    //      for a Hospital Admin's own isolated view, so they only ever see
+    //      their own hospital's login activity, never another hospital's.
+    // Master Admin logins have no Hospital Code, so they only go into the
+    // combined file, not a per-hospital file.
     // ================================================================
 
-    // Logs one login attempt (success or failure) for ANY role into SystemLoginLog.txt.
+    // Logs one login attempt (success or failure) for ANY role.
     // CALL THIS FROM: AuthService.java - at the end of masterAdminLogin(), adminLogin(),
     // doctorLogin(), labTechnicianLogin(), and patientLogin() - once for the success
     // path and once for every failure path (wrong password, hospital not found, etc.).
@@ -25,12 +34,23 @@ public class FileManager {
                 " | Hospital Code: " + hospitalPart;
 
         prependToFile("SystemLoginLog.txt", entry);
+
+        if (hospitalCode != null) {
+            prependToFile("SystemLoginLog_" + hospitalCode + ".txt", entry);
+        }
     }
 
-    // Reads the full SystemLoginLog.txt for display (e.g. an Admin/Master Admin audit screen).
-    // CALL THIS FROM: MasterAdminMenu.java or AdminMenu.java, if a "View Login Log" option is added.
+    // Reads the full, all-hospitals SystemLoginLog.txt for display.
+    // CALL THIS FROM: MasterAdminMenu.java, for the "view combined log, all hospitals" option.
     public String readSystemLoginLog() {
         return readFile("SystemLoginLog.txt");
+    }
+
+    // Reads ONE hospital's login log only.
+    // CALL THIS FROM: AdminMenu.java (always with that Admin's own Hospital Code),
+    // and from MasterAdminMenu.java when Master Admin picks a single hospital to view.
+    public String readHospitalLoginLog(String hospitalCode) {
+        return readFile("SystemLoginLog_" + hospitalCode + ".txt");
     }
 
     // ================================================================
@@ -40,9 +60,6 @@ public class FileManager {
     // separate Report_<ID>.txt / Bill_<ID>.txt files.
     // ================================================================
 
-    // Adds a short "admitted" summary to the patient's history file.
-    // CALL THIS FROM: AdminMenu.registerPatientAndAdmit() - right after
-    // admissionDAO.insertAdmission() returns true.
     public void addAdmissionHistoryEntry(int patientId, String doctorName, String roomNumber,
                                          String roomType, String admissionDate) {
         String summary = "ADMITTED on " + admissionDate +
@@ -52,9 +69,6 @@ public class FileManager {
         appendToPatientHistory(patientId, summary);
     }
 
-    // Adds a short "discharged" summary to the patient's history file.
-    // CALL THIS FROM: BillingService.dischargeAndGenerateBill() - right after
-    // both the Bill insert and the Admission status update succeed.
     public void addDischargeHistoryEntry(int patientId, String dischargeDate, double totalBillAmount) {
         String summary = "DISCHARGED on " + dischargeDate +
                 " | Final Bill: Rs." + String.format("%.2f", totalBillAmount);
@@ -62,10 +76,6 @@ public class FileManager {
         appendToPatientHistory(patientId, summary);
     }
 
-    // Adds a short "new report" summary to the patient's history file, pointing to the
-    // full Report_<ID>.txt for details.
-    // CALL THIS FROM: ReportAnalyser.generateReport() - right after reportDAO.insertReport()
-    // returns true (you will need the PatientID from the Admission tied to the TestRequest).
     public void addReportHistoryEntry(int patientId, int reportId, String testName,
                                       String resultStatus, String analysisDate) {
         String summary = "REPORT ADDED on " + analysisDate +
@@ -76,9 +86,6 @@ public class FileManager {
         appendToPatientHistory(patientId, summary);
     }
 
-    // Adds a short "diagnosis reviewed" summary to the patient's history file.
-    // CALL THIS FROM: DoctorMenu.reviewReport() - right after reportDAO.updateDoctorNotes()
-    // returns true (you will need the PatientID from the Report -> TestRequest -> Admission chain).
     public void addDiagnosisHistoryEntry(int patientId, int reportId, String doctorName) {
         String summary = "DIAGNOSIS ADDED on " + getCurrentDate() +
                 " | Report ID: " + reportId +
@@ -87,14 +94,10 @@ public class FileManager {
         appendToPatientHistory(patientId, summary);
     }
 
-    // Reads a patient's full history timeline for display.
-    // CALL THIS FROM: PatientMenu.viewMyDetails() or a new "View My History" option.
     public String readPatientHistory(int patientId) {
         return readFile("Patient_" + patientId + ".txt");
     }
 
-    // Shared helper behind all four addXHistoryEntry() methods above - every history
-    // entry is timestamped and placed at the top of the patient's file the same way.
     private void appendToPatientHistory(int patientId, String summary) {
         String entry = "[" + getCurrentTimestamp() + "] " + summary;
         prependToFile("Patient_" + patientId + ".txt", entry);
@@ -102,13 +105,8 @@ public class FileManager {
 
     // ================================================================
     // REPORT FILE  (Report_<ReportID>.txt)
-    // Holds the COMPLETE formatted report - not a timeline, one file per report.
     // ================================================================
 
-    // Writes the full, formatted lab report to Report_<ReportID>.txt.
-    // CALL THIS FROM: ReportAnalyser.generateReport() - right after reportDAO.insertReport()
-    // returns true. Pass the same Report object that was just inserted, plus the
-    // patient/test/lab-tech names looked up by the caller (this class does no DB lookups).
     public void writeReportFile(int reportId, int testRequestId, String patientName, String testName,
                                 double resultValue, String resultStatus, String analysisDate,
                                 String labTechName) {
@@ -130,9 +128,6 @@ public class FileManager {
         writeNewFile("Report_" + reportId + ".txt", content.toString());
     }
 
-    // Appends the doctor's diagnosis notes to the bottom of an existing Report_<ID>.txt.
-    // CALL THIS FROM: DoctorMenu.reviewReport() - right after reportDAO.updateDoctorNotes()
-    // returns true.
     public void appendDiagnosisToReportFile(int reportId, String doctorNotes) {
         String block = "\n------------------------------------\n" +
                 "Diagnosis Notes Updated: " + getCurrentTimestamp() + "\n" +
@@ -142,22 +137,14 @@ public class FileManager {
         appendToFile("Report_" + reportId + ".txt", block);
     }
 
-    // Reads a single report file for display.
-    // CALL THIS FROM: DoctorMenu.reviewReport() or PatientMenu.viewReportHistory(),
-    // if you want to show the full report text instead of just the DB fields.
     public String readReportFile(int reportId) {
         return readFile("Report_" + reportId + ".txt");
     }
 
     // ================================================================
     // BILL FILE  (Bill_<BillID>.txt)
-    // Holds the COMPLETE formatted bill - one file per bill.
     // ================================================================
 
-    // Writes the full, formatted bill to Bill_<BillID>.txt.
-    // CALL THIS FROM: BillingService.dischargeAndGenerateBill() - right after
-    // billDAO.insertBill() returns true. Pass the same Bill object just inserted,
-    // plus patient/doctor/hospital names looked up by the caller.
     public void writeBillFile(int billId, int admissionId, String patientName, String doctorName,
                               String hospitalName, double roomCharge, double doctorFee,
                               double testCharge, double totalAmount, String billDate) {
@@ -182,21 +169,14 @@ public class FileManager {
         writeNewFile("Bill_" + billId + ".txt", content.toString());
     }
 
-    // Reads a single bill file for display.
-    // CALL THIS FROM: PatientMenu.viewAdmissionAndBill(), if you want to show the
-    // full bill text instead of just the DB fields.
     public String readBillFile(int billId) {
         return readFile("Bill_" + billId + ".txt");
     }
 
     // ================================================================
     // PRIVATE FILE I/O HELPERS
-    // Every public method above goes through one of these three -
-    // keeps the actual File/FileReader/FileWriter logic in one place.
     // ================================================================
 
-    // Puts newEntry at the very TOP of the file, followed by whatever was already there.
-    // Used for timeline-style files: Patient history and the System Login Log.
     private void prependToFile(String fileName, String newEntry) {
         File file = new File(fileName);
         StringBuilder oldContent = new StringBuilder();
@@ -222,9 +202,6 @@ public class FileManager {
         }
     }
 
-    // Adds newContent at the BOTTOM of the file, after whatever was already there.
-    // Used when completing an existing document, e.g. adding diagnosis notes
-    // onto the bottom of an already-written Report file.
     private void appendToFile(String fileName, String newContent) {
         File file = new File(fileName);
 
@@ -235,9 +212,6 @@ public class FileManager {
         }
     }
 
-    // Creates (or completely overwrites) a file with the given content.
-    // Used for Report and Bill files, which are a single complete record,
-    // not a running timeline.
     private void writeNewFile(String fileName, String content) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
             writer.write(content);
@@ -246,7 +220,6 @@ public class FileManager {
         }
     }
 
-    // Reads and returns the full content of any of the above files, for display.
     private String readFile(String fileName) {
         File file = new File(fileName);
 
@@ -267,15 +240,12 @@ public class FileManager {
         return content.toString();
     }
 
-    // Returns the current date + time as "yyyy-MM-dd HH:mm:ss", used to timestamp
-    // every history entry and every login log entry.
     private String getCurrentTimestamp() {
         java.time.format.DateTimeFormatter formatter =
                 java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return java.time.LocalDateTime.now().format(formatter);
     }
 
-    // Returns just the current date - used where only a date (not a full timestamp) is needed.
     private String getCurrentDate() {
         return java.time.LocalDate.now().toString();
     }

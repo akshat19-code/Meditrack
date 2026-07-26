@@ -15,6 +15,7 @@ public class MasterAdminMenu {
     private MenuStack navStack;
     private MasterAdmin loggedInMasterAdmin;
     private HospitalDAO hospitalDAO = new HospitalDAO();
+    private FileManager fileManager = new FileManager();
 
     public MasterAdminMenu(Scanner sc, MenuStack navStack, MasterAdmin ma) {
         this.sc = sc;
@@ -32,6 +33,8 @@ public class MasterAdminMenu {
             System.out.println("1. Register New Hospital");
             System.out.println("2. View All Hospitals");
             System.out.println("3. Suspend / Reactivate Hospital");
+            System.out.println("4. View Combined Login Log (All Hospitals)");
+            System.out.println("5. View Login Log For One Hospital");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -40,6 +43,8 @@ public class MasterAdminMenu {
                 case 1 -> registerHospital();
                 case 2 -> viewAllHospitals();
                 case 3 -> updateHospitalStatus();
+                case 4 -> viewCombinedLoginLog();
+                case 5 -> viewLoginLogForOneHospital();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -57,13 +62,10 @@ public class MasterAdminMenu {
         navStack.push("RegisterHospital");
         System.out.println("\nPath: " + navStack.getPath());
 
-        sc.nextLine(); // clear leftover newline
+        sc.nextLine();
         System.out.print("Hospital Code: ");
         String code = sc.nextLine();
 
-        // Duplicate HospitalCode check - this code is what every Admin/Doctor/
-        // LabTech/Patient types at login to identify their hospital, so a
-        // duplicate here would make login lookups ambiguous.
         if (hospitalDAO.getHospitalByCode(code) != null) {
             System.out.println("A hospital with this Hospital Code already exists.");
             navStack.pop();
@@ -123,9 +125,6 @@ public class MasterAdminMenu {
         navStack.push("UpdateHospitalStatus");
         System.out.println("\nPath: " + navStack.getPath());
 
-        // Show existing hospitals first, so Master Admin can see the ID and
-        // current status of each hospital before being asked to pick one -
-        // reuses the same getAllHospitals() call that "View All Hospitals" uses.
         List<Hospital> hospitals = hospitalDAO.getAllHospitals();
         if (hospitals.isEmpty()) {
             System.out.println("No hospitals registered yet.");
@@ -154,15 +153,14 @@ public class MasterAdminMenu {
             return;
         }
 
-        sc.nextLine(); // clear leftover newline before the menu prompt
+        sc.nextLine();
 
         String status = InputValidator.readMenuChoice(sc, "New Status:",
                 new String[]{"ACTIVE", "SUSPENDED", "REMOVED"},
                 new String[]{"ACTIVE", "SUSPENDED", "REMOVED"});
 
-        sc.nextLine(); // clear leftover newline from readMenuChoice's internal nextInt()
+        sc.nextLine();
 
-        // Confirmation prompt before a destructive/hard-to-reverse status change
         if (status.equals("SUSPENDED") || status.equals("REMOVED")) {
             System.out.print("Are you sure you want to set this hospital to " + status + "? (Y/N): ");
             String confirm = sc.nextLine();
@@ -179,6 +177,52 @@ public class MasterAdminMenu {
         } else {
             System.out.println("Failed to update hospital status.");
         }
+
+        navStack.pop();
+    }
+
+    // Shows the single combined SystemLoginLog.txt - every role, every
+    // hospital, already naturally time-ordered newest-first since every
+    // entry is prepended the moment it happens. No merging or sorting needed.
+    private void viewCombinedLoginLog() {
+        navStack.push("ViewCombinedLoginLog");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        String log = fileManager.readSystemLoginLog();
+        System.out.println(log);
+
+        navStack.pop();
+    }
+
+    // Numbered picker built from the same hospital list View All Hospitals
+    // already uses. readMenuChoice's "values" array is set to each Hospital's
+    // Code (not its name), so the number Master Admin picks resolves directly
+    // to the HospitalCode that FileManager needs to open the right log file.
+    private void viewLoginLogForOneHospital() {
+        navStack.push("ViewLoginLogForOneHospital");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
+        if (hospitals.isEmpty()) {
+            System.out.println("No hospitals registered yet.");
+            navStack.pop();
+            return;
+        }
+
+        String[] labels = new String[hospitals.size()];
+        String[] values = new String[hospitals.size()];
+
+        for (int i = 0; i < hospitals.size(); i++) {
+            Hospital h = hospitals.get(i);
+            labels[i] = h.getHospitalName() + " (" + h.getHospitalCode() + ")";
+            values[i] = h.getHospitalCode();
+        }
+
+        String selectedCode = InputValidator.readMenuChoice(sc, "Select Hospital:", labels, values);
+        sc.nextLine();
+
+        String log = fileManager.readHospitalLoginLog(selectedCode);
+        System.out.println(log);
 
         navStack.pop();
     }

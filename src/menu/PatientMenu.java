@@ -22,6 +22,7 @@ public class PatientMenu {
     private PatientDAO patientDAO = new PatientDAO();
     private DoctorDAO doctorDAO = new DoctorDAO();
     private HealthScoreService healthScoreService = new HealthScoreService();
+    private FileManager fileManager = new FileManager();
 
     public PatientMenu(Scanner sc, MenuStack navStack, Patient p) {
         this.sc = sc;
@@ -40,6 +41,7 @@ public class PatientMenu {
             System.out.println("2. View Report History");
             System.out.println("3. View Health Score");
             System.out.println("4. View Admission Status & Bill");
+            System.out.println("5. View My History");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -49,6 +51,7 @@ public class PatientMenu {
                 case 2 -> viewReportHistory();
                 case 3 -> viewHealthScore();
                 case 4 -> viewAdmissionAndBill();
+                case 5 -> viewMyHistory();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -151,8 +154,6 @@ public class PatientMenu {
             System.out.println("No admission records found.");
         } else {
             for (Admission ad : admissions) {
-                // Look up the doctor's name instead of showing a raw DoctorID,
-                // since Admission.toString() only has the ID available to it.
                 Doctor d = doctorDAO.getDoctorById(ad.getDoctorID());
                 String doctorName = (d != null) ? d.getName() : "Unknown Doctor";
 
@@ -167,6 +168,19 @@ public class PatientMenu {
                 }
             }
         }
+
+        navStack.pop();
+    }
+
+    // Shows the patient's full lifecycle timeline - admissions, reports,
+    // diagnoses, discharges - already written correctly to Patient_<ID>.txt
+    // at every step; this just exposes that existing file to the patient.
+    private void viewMyHistory() {
+        navStack.push("ViewMyHistory");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        String history = fileManager.readPatientHistory(loggedInPatient.getPatientID());
+        System.out.println(history);
 
         navStack.pop();
     }
