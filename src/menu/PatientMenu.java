@@ -98,40 +98,37 @@ public class PatientMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         // ReportDAO already returns these ordered oldest-to-newest (AnalysisDate ASC).
-        // We use this List directly - no need to copy it into another collection.
         List<Report> reports = reportDAO.getReportsByPatient(loggedInPatient.getPatientID());
 
         if (reports.isEmpty()) {
             System.out.println("No report history available yet.");
         } else {
-            // Walk the list backwards to print newest-first, matching the
-            // .txt file order, without needing any extra data structure.
-            System.out.println("---- Report History (Newest to Oldest) ----");
-            for (int i = reports.size() - 1; i >= 0; i--) {
-                Report r = reports.get(i);
+            // Custom PatientHistoryList - load reports oldest-to-newest via
+            // addLast() (matching ReportDAO's existing order), then use the
+            // list's own displayFromLast() to print newest-first.
+            PatientHistoryList historyList = new PatientHistoryList();
+            for (Report r : reports) {
                 String testName = getTestNameForReport(r);
-
-                System.out.println("Report ID: " + r.getReportID() +
-                        " | Test: " + testName +
-                        " | Result: " + String.format("%.2f", r.getResultValue()) +
-                        " | Status: " + r.getResultStatus() +
-                        " | Date: " + r.getAnalysisDate());
+                historyList.addLast(r.getReportID(), testName, r.getResultValue(),
+                        r.getResultStatus(), r.getAnalysisDate());
             }
-            System.out.println("--------------------------------------------");
+            historyList.displayFromLast();
         }
 
         // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
-        // Custom PatientHistoryList equivalent - load reports oldest-to-newest
-        // via addLast() (matching ReportDAO's existing order), then use the
-        // list's own displayFromLast() to print newest-first, replacing the
-        // manual reverse for-loop above.
-        // PatientHistoryList historyList = new PatientHistoryList();
-        // for (Report r : reports) {
+        // Built-in equivalent - walk the List backwards to print newest-first,
+        // matching the .txt file order, without needing any extra data structure.
+        // System.out.println("---- Report History (Newest to Oldest) ----");
+        // for (int i = reports.size() - 1; i >= 0; i--) {
+        //     Report r = reports.get(i);
         //     String testName = getTestNameForReport(r);
-        //     historyList.addLast(r.getReportID(), testName, r.getResultValue(),
-        //             r.getResultStatus(), r.getAnalysisDate());
+        //     System.out.println("Report ID: " + r.getReportID() +
+        //             " | Test: " + testName +
+        //             " | Result: " + String.format("%.2f", r.getResultValue()) +
+        //             " | Status: " + r.getResultStatus() +
+        //             " | Date: " + r.getAnalysisDate());
         // }
-        // historyList.displayFromLast();
+        // System.out.println("--------------------------------------------");
 
         navStack.pop();
     }
