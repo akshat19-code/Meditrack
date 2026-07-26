@@ -91,7 +91,7 @@ public class PatientHistoryList {
         while (current != null) {
             System.out.println("Report ID: " + current.reportId +
                     " | Test: " + current.testName +
-                    " | Result: " + current.resultValue +
+                    " | Result: " + String.format("%.2f", current.resultValue) +
                     " | Status: " + current.resultStatus +
                     " | Date: " + current.analysisDate);
             current = current.next;
@@ -111,7 +111,7 @@ public class PatientHistoryList {
         while (current != null) {
             System.out.println("Report ID: " + current.reportId +
                     " | Test: " + current.testName +
-                    " | Result: " + current.resultValue +
+                    " | Result: " + String.format("%.2f", current.resultValue) +
                     " | Status: " + current.resultStatus +
                     " | Date: " + current.analysisDate);
             current = current.prev;

@@ -86,6 +86,34 @@ public class TestRequestQueue {
         return processedId;
     }
 
+    // deleteFromFrontWithDetails - same removal logic as deleteFromFront(), but
+    // returns the patient name, test name, and priority as a String[] instead
+    // of only printing them - needed so QueueService can build the same
+    // structured display line regardless of which implementation is active.
+    // Array layout: [0] = TestRequestID, [1] = PatientName, [2] = TestName, [3] = Priority.
+    // Returns null if the queue is empty.
+    public String[] deleteFromFrontWithDetails() {
+        if (isEmpty()) {
+            System.out.println("No pending test requests.");
+            return null;
+        }
+
+        String[] details = new String[] {
+                String.valueOf(front.testRequestId),
+                front.patientName,
+                front.testName,
+                front.priority
+        };
+
+        front = front.next;
+        if (front == null) {
+            rear = null;
+        }
+        size--;
+
+        return details;
+    }
+
     // peek - view the next request to be processed, without removing it
     public void peek() {
         if (isEmpty()) {
