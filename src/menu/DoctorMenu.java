@@ -121,7 +121,7 @@ public class DoctorMenu {
                 new String[]{"NORMAL", "EMERGENCY"});
         sc.nextLine();
 
-        String equipmentUsageDate = InputValidator.readDate(sc, "Equipment Usage Date (yyyy-mm-dd): ", false);
+        String equipmentUsageDate = InputValidator.readDate(sc, "Equipment Usage Date (yyyy-mm-dd): ", false, true);
 
         TestType selectedTest = testTypeDAO.getTestTypeById(testTypeId);
         if (selectedTest == null) {

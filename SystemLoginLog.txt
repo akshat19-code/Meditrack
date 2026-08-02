@@ -1,3 +1,7 @@
+[2026-08-02 13:51:55] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001
+[2026-08-02 13:48:05] SUCCESS | Role: DOCTOR | Username: dr.suresh | Hospital Code: HSP001
+[2026-08-02 13:47:41] FAILED | Role: ADMIN | Username: WDAQ | Hospital Code: w
+[2026-08-02 12:31:57] SUCCESS | Role: DOCTOR | Username: dr.neha | Hospital Code: HSP002
 [2026-08-02 09:12:02] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001
 [2026-08-02 08:55:58] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001
 [2026-08-02 08:53:03] SUCCESS | Role: ADMIN | Username: rakesh.admin | Hospital Code: HSP001

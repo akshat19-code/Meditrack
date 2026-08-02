@@ -165,6 +165,14 @@ public class InputValidator {
 // disallowFuture=true additionally rejects dates after today (for DOB,
 // since a birth date in the future makes no sense).
     public static String readDate(Scanner sc, String prompt, boolean disallowFuture) {
+        return readDate(sc, prompt, disallowFuture, false);
+    }
+    // Overload of readDate() that can ALSO reject past dates - used for
+    // Equipment Usage Date, where scheduling equipment for a date that's
+    // already gone doesn't make sense. The original 3-argument readDate()
+    // now just calls this with disallowPast=false, so DOB and Admission
+    // Date (which both still allow past dates) keep working exactly as before.
+    public static String readDate(Scanner sc, String prompt, boolean disallowFuture, boolean disallowPast) {
         while (true) {
             System.out.print(prompt);
             String value = sc.nextLine().trim();
@@ -172,6 +180,10 @@ public class InputValidator {
                 java.time.LocalDate date = java.time.LocalDate.parse(value);
                 if (disallowFuture && date.isAfter(java.time.LocalDate.now())) {
                     System.out.println("Date cannot be in the future. Please try again.");
+                    continue;
+                }
+                if (disallowPast && date.isBefore(java.time.LocalDate.now())) {
+                    System.out.println("Date cannot be in the past. Please try again.");
                     continue;
                 }
                 return value;
