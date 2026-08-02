@@ -98,16 +98,20 @@ public class AdminMenu {
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readEmail(sc, "Email: ");
 
-        if (doctorDAO.getDoctorByEmail(email, loggedInAdmin.getHospitalID()) != null) {
-            System.out.println("A doctor with this email already exists in your hospital.");
+        // Email is now a GLOBAL uniqueness check (no HospitalID filter) -
+        // the same email address should not belong to two different doctors
+        // anywhere in the system, not just within this hospital.
+        if (doctorDAO.getDoctorByEmail(email) != null) {
+            System.out.println("A doctor with this email already exists.");
             navStack.pop();
             return;
         }
 
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
 
-        if (doctorDAO.getDoctorByPhone(phone, loggedInAdmin.getHospitalID()) != null) {
-            System.out.println("A doctor with this phone number already exists in your hospital.");
+        // Phone number is now a GLOBAL uniqueness check, same reasoning as email.
+        if (doctorDAO.getDoctorByPhone(phone) != null) {
+            System.out.println("A doctor with this phone number already exists.");
             navStack.pop();
             return;
         }
@@ -152,7 +156,24 @@ public class AdminMenu {
 
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readNonEmptyString(sc, "Email: ");
+
+        // NEW - Email checked GLOBALLY. This validation did not exist before;
+        // Lab Technician registration only checked username duplication.
+        if (labTechDAO.getLabTechnicianByEmail(email) != null) {
+            System.out.println("A lab technician with this email already exists.");
+            navStack.pop();
+            return;
+        }
+
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+
+        // NEW - Phone number checked GLOBALLY, same reasoning as email above.
+        if (labTechDAO.getLabTechnicianByPhone(phone) != null) {
+            System.out.println("A lab technician with this phone number already exists.");
+            navStack.pop();
+            return;
+        }
+
         String qualification = InputValidator.readNonEmptyString(sc, "Qualification: ");
 
         LabTechnician lt = new LabTechnician();
@@ -205,11 +226,28 @@ public class AdminMenu {
         Patient newPatient;
 
         if (existingPatient != null) {
+            // Returning patient - reusing their existing record, so their own
+            // email/phone will naturally match themselves. Uniqueness checks
+            // below only apply to the genuinely-new-patient branch.
             System.out.println("Returning patient detected - reusing existing patient record.");
             newPatient = existingPatient;
         } else {
             if (patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID()) != null) {
                 System.out.println("A patient with this username already exists in your hospital.");
+                navStack.pop();
+                return;
+            }
+
+            // NEW - Email checked GLOBALLY across all hospitals.
+            if (patientDAO.getPatientByEmail(email) != null) {
+                System.out.println("A patient with this email already exists.");
+                navStack.pop();
+                return;
+            }
+
+            // NEW - Phone number checked GLOBALLY across all hospitals.
+            if (patientDAO.getPatientByPhone(phone) != null) {
+                System.out.println("A patient with this phone number already exists.");
                 navStack.pop();
                 return;
             }

@@ -43,6 +43,7 @@ public class PatientDAO {
         }
     }
 
+    // Username stays hospital-specific.
     public Patient getPatientByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Username = ? AND HospitalID = ?";
 
@@ -84,6 +85,9 @@ public class PatientDAO {
         return null;
     }
 
+    // Unchanged - this is the "returning patient" match (Name + DOB + Hospital),
+    // a completely different concept from email/phone uniqueness and not part
+    // of this fix.
     public Patient findReturningPatient(String name, String dob, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Name = ? AND DOB = ? AND HospitalID = ?";
 
@@ -166,6 +170,48 @@ public class PatientDAO {
             System.out.println("Error updating Patient password: " + e.getMessage());
             return false;
         }
+    }
+
+    // NEW - Phone number checked GLOBALLY across all hospitals.
+    public Patient getPatientByPhone(String phone) {
+        String query = "SELECT * FROM Patient WHERE PhoneNo = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, phone);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildPatientFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking Patient phone number: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // NEW - Email checked GLOBALLY across all hospitals.
+    public Patient getPatientByEmail(String email) {
+        String query = "SELECT * FROM Patient WHERE Email = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildPatientFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking Patient email: " + e.getMessage());
+        }
+        return null;
     }
 
     private Patient buildPatientFromResultSet(ResultSet rs) throws SQLException {

@@ -74,6 +74,46 @@ public class AdminDAO {
         }
     }
 
+    public Admin getAdminByPhone(String phone) {
+        String query = "SELECT * FROM Admin WHERE PhoneNo = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, phone);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildAdminFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking Admin phone number: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public Admin getAdminByEmail(String email) {
+        String query = "SELECT * FROM Admin WHERE Email = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildAdminFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking Admin email: " + e.getMessage());
+        }
+        return null;
+    }
+
     private Admin buildAdminFromResultSet(ResultSet rs) throws SQLException {
         Admin a = new Admin();
         a.setAdminID(rs.getInt("AdminID"));

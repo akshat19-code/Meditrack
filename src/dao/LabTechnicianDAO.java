@@ -36,6 +36,7 @@ public class LabTechnicianDAO {
         }
     }
 
+    // Username stays hospital-specific.
     public LabTechnician getLabTechnicianByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM LabTechnician WHERE Username = ? AND HospitalID = ?";
 
@@ -115,6 +116,48 @@ public class LabTechnicianDAO {
             System.out.println("Error updating LabTechnician password: " + e.getMessage());
             return false;
         }
+    }
+
+    // NEW - Phone number checked GLOBALLY across all hospitals.
+    public LabTechnician getLabTechnicianByPhone(String phone) {
+        String query = "SELECT * FROM LabTechnician WHERE PhoneNo = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, phone);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildLabTechFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking LabTechnician phone number: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // NEW - Email checked GLOBALLY across all hospitals.
+    public LabTechnician getLabTechnicianByEmail(String email) {
+        String query = "SELECT * FROM LabTechnician WHERE Email = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildLabTechFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking LabTechnician email: " + e.getMessage());
+        }
+        return null;
     }
 
     private LabTechnician buildLabTechFromResultSet(ResultSet rs) throws SQLException {

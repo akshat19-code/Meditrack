@@ -325,7 +325,20 @@ public class MasterAdminMenu {
 
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readEmail(sc, "Email: ");
+
+        // NEW - Email checked GLOBALLY across all hospitals.
+        if (adminDAO.getAdminByEmail(email) != null) {
+            System.out.println("An admin with this email already exists.");
+            return;
+        }
+
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+
+        // NEW - Phone number checked GLOBALLY across all hospitals.
+        if (adminDAO.getAdminByPhone(phone) != null) {
+            System.out.println("An admin with this phone number already exists.");
+            return;
+        }
 
         Admin a = new Admin();
         a.setFirstName(firstName);

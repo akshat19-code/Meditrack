@@ -40,6 +40,8 @@ public class DoctorDAO {
         }
     }
 
+    // Username stays hospital-specific: same username is allowed to exist
+    // in two different hospitals (each hospital's login is scoped by Hospital Code).
     public Doctor getDoctorByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Doctor WHERE Username = ? AND HospitalID = ?";
 
@@ -140,15 +142,17 @@ public class DoctorDAO {
         return d;
     }
 
-    public Doctor getDoctorByPhone(String phone, int hospitalId) {
-        String query = "SELECT * FROM Doctor WHERE PhoneNo = ? AND HospitalID = ?";
+    // Phone number is now checked GLOBALLY (no HospitalID filter) - a phone
+    // number is a real-world unique identifier and should not be allowed to
+    // repeat across different hospitals in the system.
+    public Doctor getDoctorByPhone(String phone) {
+        String query = "SELECT * FROM Doctor WHERE PhoneNo = ?";
 
         Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, phone);
-            pstmt.setInt(2, hospitalId);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
@@ -161,15 +165,16 @@ public class DoctorDAO {
         return null;
     }
 
-    public Doctor getDoctorByEmail(String email, int hospitalId) {
-        String query = "SELECT * FROM Doctor WHERE Email = ? AND HospitalID = ?";
+    // Email is now checked GLOBALLY (no HospitalID filter) - same reasoning
+    // as phone number above.
+    public Doctor getDoctorByEmail(String email) {
+        String query = "SELECT * FROM Doctor WHERE Email = ?";
 
         Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, email);
-            pstmt.setInt(2, hospitalId);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
