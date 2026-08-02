@@ -16,6 +16,7 @@ public class MasterAdminMenu {
     private MasterAdmin loggedInMasterAdmin;
     private HospitalDAO hospitalDAO = new HospitalDAO();
     private MasterAdminDAO masterAdminDAO = new MasterAdminDAO();
+    private AdminDAO adminDAO = new AdminDAO();
     private FileManager fileManager = new FileManager();
 
     public MasterAdminMenu(Scanner sc, MenuStack navStack, MasterAdmin ma) {
@@ -37,6 +38,7 @@ public class MasterAdminMenu {
             System.out.println("4. View Combined Login Log (All Hospitals)");
             System.out.println("5. View Login Log For One Hospital");
             System.out.println("6. Change Password");
+            System.out.println("7. Add Hospital Admin");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -48,6 +50,7 @@ public class MasterAdminMenu {
                 case 4 -> viewCombinedLoginLog();
                 case 5 -> viewLoginLogForOneHospital();
                 case 6 -> changePassword();
+                case 7 -> addHospitalAdmin();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -77,7 +80,6 @@ public class MasterAdminMenu {
 
         System.out.print("Hospital Name: ");
         String name = sc.nextLine();
-        System.out.print("Street: ");
         String street = InputValidator.readAddressString(sc, "Street: ");
         String city = InputValidator.readAlphabeticString(sc, "City: ");
         String state = InputValidator.readAlphabeticString(sc, "State: ");
@@ -100,6 +102,17 @@ public class MasterAdminMenu {
         boolean success = hospitalDAO.insertHospital(h);
         if (success) {
             System.out.println("Hospital registered successfully!");
+
+            Hospital newHospital = hospitalDAO.getHospitalByCode(code);
+            if (newHospital != null) {
+                System.out.print("Add a Hospital Admin for this hospital now? (Y/N): ");
+                String addNow = sc.nextLine();
+                if (addNow.equalsIgnoreCase("Y")) {
+                    createAdminForHospital(newHospital.getHospitalID());
+                } else {
+                    System.out.println("Skipped. You can add one later via 'Add Hospital Admin' in the Master Admin Menu.");
+                }
+            }
         } else {
             System.out.println("Failed to register hospital.");
         }
@@ -266,5 +279,80 @@ public class MasterAdminMenu {
         }
 
         navStack.pop();
+    }
+
+    // Lets Master Admin pick any existing hospital - new or old - and give it
+    // an Admin account. This is the only path in the app that can create one,
+    // so it covers every case: a brand-new hospital, an old one that never
+    // got an admin, a second admin, or replacing a lost one.
+    private void addHospitalAdmin() {
+        navStack.push("AddHospitalAdmin");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
+        if (hospitals.isEmpty()) {
+            System.out.println("No hospitals registered yet.");
+            navStack.pop();
+            return;
+        }
+
+        String[] labels = new String[hospitals.size()];
+        Integer[] hospitalIds = new Integer[hospitals.size()];
+
+        for (int i = 0; i < hospitals.size(); i++) {
+            Hospital h = hospitals.get(i);
+            labels[i] = h.getHospitalName() + " (" + h.getHospitalCode() + ")";
+            hospitalIds[i] = h.getHospitalID();
+        }
+
+        System.out.println("---- Select Hospital ----");
+        for (int i = 0; i < labels.length; i++) {
+            System.out.println((i + 1) + ". " + labels[i]);
+        }
+        int choice = InputValidator.readInt(sc, "Enter choice: ");
+        sc.nextLine();
+
+        if (choice < 1 || choice > hospitalIds.length) {
+            System.out.println("Invalid choice.");
+            navStack.pop();
+            return;
+        }
+
+        createAdminForHospital(hospitalIds[choice - 1]);
+
+        navStack.pop();
+    }
+
+    // Shared logic behind both "Add Hospital Admin" and the convenience
+    // prompt right after registering a hospital. Takes an already-known
+    // HospitalID, so it doesn't care whether the hospital is brand new
+    // or years old.
+    private void createAdminForHospital(int hospitalId) {
+        System.out.println("\n---- New Hospital Admin ----");
+
+        String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
+        String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
+        String username = InputValidator.readNonEmptyString(sc, "Username: ");
+
+        if (adminDAO.getAdminByUsername(username, hospitalId) != null) {
+            System.out.println("An admin with this username already exists in this hospital.");
+            return;
+        }
+
+        String password = InputValidator.readNonEmptyString(sc, "Password: ");
+        String email = InputValidator.readEmail(sc, "Email: ");
+        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+
+        Admin a = new Admin();
+        a.setFirstName(firstName);
+        a.setLastName(lastName);
+        a.setUsername(username);
+        a.setPassword(password);
+        a.setEmail(email);
+        a.setPhoneNo(phone);
+        a.setHospitalID(hospitalId);
+
+        boolean success = adminDAO.insertAdmin(a);
+        System.out.println(success ? "Hospital Admin added successfully!" : "Failed to add Hospital Admin.");
     }
 }

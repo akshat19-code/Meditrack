@@ -101,7 +101,21 @@ public class AdminMenu {
 
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readEmail(sc, "Email: ");
+
+        if (doctorDAO.getDoctorByEmail(email, loggedInAdmin.getHospitalID()) != null) {
+            System.out.println("A doctor with this email already exists in your hospital.");
+            navStack.pop();
+            return;
+        }
+
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+
+        if (doctorDAO.getDoctorByPhone(phone, loggedInAdmin.getHospitalID()) != null) {
+            System.out.println("A doctor with this phone number already exists in your hospital.");
+            navStack.pop();
+            return;
+        }
+
         String specialization = InputValidator.readNonEmptyString(sc, "Specialization: ");
         String department = InputValidator.readNonEmptyString(sc, "Department: ");
         String qualification = InputValidator.readNonEmptyString(sc, "Qualification: ");
