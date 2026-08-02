@@ -9,8 +9,6 @@ import java.util.List;
 
 public class TestRequestDAO {
 
-    // Insert a new TestRequest - called when Doctor requests a test.
-    // The generated TestRequestID also gets enqueued into TestRequestQueue by the Service layer.
     public int insertTestRequest(TestRequest tr) {
         String query = "INSERT INTO TestRequest (RequestDate, EquipmentUsageDate, Priority, Status, AdmissionID, DoctorID, TestTypeID, EquipmentID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -42,7 +40,6 @@ public class TestRequestDAO {
         return -1;
     }
 
-    // Fetch a TestRequest by ID - used when generating a Report for it
     public TestRequest getTestRequestById(int testRequestId) {
         String query = "SELECT * FROM TestRequest WHERE TestRequestID = ?";
 
@@ -63,9 +60,6 @@ public class TestRequestDAO {
         return null;
     }
 
-    // Fetch all PENDING TestRequests in a Hospital, oldest first - used at Java program
-    // startup to rebuild TestRequestQueue from the database (queue is in-memory only,
-    // so this restores it after the program restarts)
     public List<TestRequest> getPendingTestRequests(int hospitalId) {
         List<TestRequest> requestList = new ArrayList<>();
         String query = "SELECT tr.* FROM TestRequest tr " +
@@ -90,31 +84,7 @@ public class TestRequestDAO {
         return requestList;
     }
 
-    // Fetch all TestRequests for a specific Admission - used by BillingService
-    // to sum up test charges when generating the final Bill at discharge
-    public List<TestRequest> getTestRequestsByAdmission(int admissionId) {
-        List<TestRequest> requestList = new ArrayList<>();
-        String query = "SELECT * FROM TestRequest WHERE AdmissionID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
-        try (PreparedStatement pstmt = con.prepareStatement(query)) {
-
-            pstmt.setInt(1, admissionId);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                requestList.add(buildTestRequestFromResultSet(rs));
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error fetching TestRequests for Admission: " + e.getMessage());
-        }
-        return requestList;
-    }
-
-    // Update Status only - PENDING -> PROCESSING (Lab Tech picks it up)
-    // or PROCESSING -> COMPLETED (after Report is generated)
     public boolean updateTestRequestStatus(int testRequestId, String newStatus) {
         String query = "UPDATE TestRequest SET Status = ? WHERE TestRequestID = ?";
 
@@ -134,7 +104,6 @@ public class TestRequestDAO {
         }
     }
 
-    // Helper method - builds a TestRequest object from a ResultSet row
     private TestRequest buildTestRequestFromResultSet(ResultSet rs) throws SQLException {
         TestRequest tr = new TestRequest();
         tr.setTestRequestID(rs.getInt("TestRequestID"));

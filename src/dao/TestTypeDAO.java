@@ -9,8 +9,6 @@ import java.util.List;
 
 public class TestTypeDAO {
 
-    // Insert a new TestType - called by TestTypeService after Equipment has been
-    // resolved (either reused or newly created via EquipmentDAO)
     public boolean insertTestType(TestType tt) {
         String query = "INSERT INTO TestType (TestName, NormalMin, NormalMax, Unit, TestCharge, HospitalID, EquipmentID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -36,8 +34,6 @@ public class TestTypeDAO {
         }
     }
 
-    // Fetch a TestType by ID - used whenever TestRequest needs full test details
-    // (e.g. Lab Tech checking NormalMin/NormalMax to analyse a result)
     public TestType getTestTypeById(int testTypeId) {
         String query = "SELECT * FROM TestType WHERE TestTypeID = ?";
 
@@ -58,8 +54,6 @@ public class TestTypeDAO {
         return null;
     }
 
-    // Fetch all TestTypes in a Hospital - used when Doctor requests a test
-    // (shown as a list to pick from) and when Admin views existing test types
     public List<TestType> getAllTestTypesByHospital(int hospitalId) {
         List<TestType> testTypeList = new ArrayList<>();
         String query = "SELECT * FROM TestType WHERE HospitalID = ?";
@@ -81,7 +75,6 @@ public class TestTypeDAO {
         return testTypeList;
     }
 
-    // Helper method - builds a TestType object from a ResultSet row
     private TestType buildTestTypeFromResultSet(ResultSet rs) throws SQLException {
         TestType tt = new TestType();
         tt.setTestTypeID(rs.getInt("TestTypeID"));

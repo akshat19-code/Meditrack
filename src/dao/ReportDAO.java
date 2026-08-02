@@ -9,7 +9,6 @@ import java.util.List;
 
 public class ReportDAO {
 
-    // Insert a new Report - called when Lab Technician uploads a result
     public boolean insertReport(Report r) {
         String query = "INSERT INTO Report (ResultValue, ResultStatus, AnalysisDate, DoctorNotes, TestRequestID, LabTechID) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -34,7 +33,6 @@ public class ReportDAO {
         }
     }
 
-    // Fetch a Report by ID - used when Doctor reviews a specific report to add DoctorNotes
     public Report getReportById(int reportId) {
         String query = "SELECT * FROM Report WHERE ReportID = ?";
 
@@ -55,8 +53,6 @@ public class ReportDAO {
         return null;
     }
 
-    // Fetch a Report by its TestRequestID - since Report is 1:1 with TestRequest
-    // (used to check "has this request already been reported?")
     public Report getReportByTestRequestId(int testRequestId) {
         String query = "SELECT * FROM Report WHERE TestRequestID = ?";
 
@@ -77,12 +73,6 @@ public class ReportDAO {
         return null;
     }
 
-    // Update DoctorNotes - called when Doctor reviews a report and adds diagnosis notes.
-    // APPENDS the new note onto whatever was already there (separated by a divider)
-    // instead of overwriting it, so the database stays consistent with Report_<ID>.txt,
-    // which already appends every new note onto the bottom of the file. Fetches the
-    // existing Report first, since we need its current DoctorNotes value to build the
-    // combined string before writing it back.
     public boolean updateDoctorNotes(int reportId, String newNote) {
         Report existing = getReportById(reportId);
         if (existing == null) {
@@ -117,8 +107,6 @@ public class ReportDAO {
         }
     }
 
-    // Fetch all Reports for a Patient, oldest first - used to load PatientHistoryList
-    // (walks Report -> TestRequest -> Admission -> Patient, since Report has no direct PatientID)
     public List<Report> getReportsByPatient(int patientId) {
         List<Report> reportList = new ArrayList<>();
         String query = "SELECT r.* FROM Report r " +
@@ -144,7 +132,6 @@ public class ReportDAO {
         return reportList;
     }
 
-    // Helper method - builds a Report object from a ResultSet row
     private Report buildReportFromResultSet(ResultSet rs) throws SQLException {
         Report r = new Report();
         r.setReportID(rs.getInt("ReportID"));

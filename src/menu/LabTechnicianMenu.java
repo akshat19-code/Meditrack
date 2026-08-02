@@ -4,9 +4,8 @@ import dao.*;
 import ds.*;
 import model.*;
 import service.*;
-import util.InputValidator;
-
-import java.util.Scanner;
+import util.*;
+import java.util.*;
 
 public class LabTechnicianMenu {
 
@@ -121,7 +120,6 @@ public class LabTechnicianMenu {
         navStack.pop();
     }
 
-    // Same pattern as the other four roles' Change Password.
     private void changePassword() {
         navStack.push("ChangePassword");
         System.out.println("\nPath: " + navStack.getPath());

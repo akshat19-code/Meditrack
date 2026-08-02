@@ -4,10 +4,8 @@ import dao.*;
 import ds.*;
 import model.*;
 import service.*;
-import util.InputValidator;
-
-import java.util.List;
-import java.util.Scanner;
+import util.*;
+import java.util.*;
 
 public class MasterAdminMenu {
 
@@ -241,12 +239,6 @@ public class MasterAdminMenu {
         navStack.pop();
     }
 
-    // Asks for the CURRENT password first (proves it's really the logged-in
-    // Master Admin typing, not just anyone at an unlocked session), then the
-    // new password twice (typo protection - mismatched entries are rejected
-    // before anything is saved). Updates the in-memory loggedInMasterAdmin
-    // object too after a successful change, so a second Change Password in
-    // this same session compares against the NEW password, not a stale one.
     private void changePassword() {
         navStack.push("ChangePassword");
         System.out.println("\nPath: " + navStack.getPath());
@@ -281,10 +273,6 @@ public class MasterAdminMenu {
         navStack.pop();
     }
 
-    // Lets Master Admin pick any existing hospital - new or old - and give it
-    // an Admin account. This is the only path in the app that can create one,
-    // so it covers every case: a brand-new hospital, an old one that never
-    // got an admin, a second admin, or replacing a lost one.
     private void addHospitalAdmin() {
         navStack.push("AddHospitalAdmin");
         System.out.println("\nPath: " + navStack.getPath());
@@ -323,10 +311,6 @@ public class MasterAdminMenu {
         navStack.pop();
     }
 
-    // Shared logic behind both "Add Hospital Admin" and the convenience
-    // prompt right after registering a hospital. Takes an already-known
-    // HospitalID, so it doesn't care whether the hospital is brand new
-    // or years old.
     private void createAdminForHospital(int hospitalId) {
         System.out.println("\n---- New Hospital Admin ----");
 

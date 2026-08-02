@@ -81,8 +81,6 @@ public class PatientMenu {
         navStack.pop();
     }
 
-    // Helper - walks Report -> TestRequest -> TestType to find the real test
-    // name for a report, since Report itself only stores TestRequestID.
     private String getTestNameForReport(Report r) {
         TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
         if (tr == null) {
@@ -97,15 +95,11 @@ public class PatientMenu {
         navStack.push("ViewReportHistory");
         System.out.println("\nPath: " + navStack.getPath());
 
-        // ReportDAO already returns these ordered oldest-to-newest (AnalysisDate ASC).
         List<Report> reports = reportDAO.getReportsByPatient(loggedInPatient.getPatientID());
 
         if (reports.isEmpty()) {
             System.out.println("No report history available yet.");
         } else {
-            // Custom PatientHistoryList - load reports oldest-to-newest via
-            // addLast() (matching ReportDAO's existing order), then use the
-            // list's own displayFromLast() to print newest-first.
             PatientHistoryList historyList = new PatientHistoryList();
             for (Report r : reports) {
                 String testName = getTestNameForReport(r);
@@ -114,22 +108,6 @@ public class PatientMenu {
             }
             historyList.displayFromLast();
         }
-
-        // ---- DATA STRUCTURES EVALUATION ALTERNATIVE (commented) ----
-        // Built-in equivalent - walk the List backwards to print newest-first,
-        // matching the .txt file order, without needing any extra data structure.
-        // System.out.println("---- Report History (Newest to Oldest) ----");
-        // for (int i = reports.size() - 1; i >= 0; i--) {
-        //     Report r = reports.get(i);
-        //     String testName = getTestNameForReport(r);
-        //     System.out.println("Report ID: " + r.getReportID() +
-        //             " | Test: " + testName +
-        //             " | Result: " + String.format("%.2f", r.getResultValue()) +
-        //             " | Status: " + r.getResultStatus() +
-        //             " | Date: " + r.getAnalysisDate());
-        // }
-        // System.out.println("--------------------------------------------");
-
         navStack.pop();
     }
 
@@ -171,9 +149,6 @@ public class PatientMenu {
         navStack.pop();
     }
 
-    // Shows the patient's full lifecycle timeline - admissions, reports,
-    // diagnoses, discharges - already written correctly to Patient_<ID>.txt
-    // at every step; this just exposes that existing file to the patient.
     private void viewMyHistory() {
         navStack.push("ViewMyHistory");
         System.out.println("\nPath: " + navStack.getPath());
@@ -184,7 +159,6 @@ public class PatientMenu {
         navStack.pop();
     }
 
-    // Same pattern as the other four roles' Change Password.
     private void changePassword() {
         navStack.push("ChangePassword");
         System.out.println("\nPath: " + navStack.getPath());

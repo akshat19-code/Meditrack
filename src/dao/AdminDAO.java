@@ -1,15 +1,13 @@
 package dao;
 
-import database.DatabaseConnection;
+import database.*;
 import model.Admin;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class AdminDAO {
 
-    // Insert a new Admin - called when Master Admin creates the first Hospital Admin
     public boolean insertAdmin(Admin a) {
         String query = "INSERT INTO Admin (FirstName, LastName, Name, Username, Password, Email, PhoneNo, HospitalID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -36,8 +34,6 @@ public class AdminDAO {
         }
     }
 
-    // Fetch an Admin by Username within a specific Hospital - used for login
-    // (Hospital Code + Username + Password, per your login rules)
     public Admin getAdminByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Admin WHERE Username = ? AND HospitalID = ?";
 
@@ -59,7 +55,6 @@ public class AdminDAO {
         return null;
     }
 
-    // Update Password only - called when an Admin uses "Change Password"
     public boolean updatePassword(int adminId, String newPassword) {
         String query = "UPDATE Admin SET Password = ? WHERE AdminID = ?";
 
@@ -79,7 +74,6 @@ public class AdminDAO {
         }
     }
 
-    // Helper method - builds an Admin object from a ResultSet row
     private Admin buildAdminFromResultSet(ResultSet rs) throws SQLException {
         Admin a = new Admin();
         a.setAdminID(rs.getInt("AdminID"));

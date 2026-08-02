@@ -9,7 +9,6 @@ import java.util.List;
 
 public class AdmissionDAO {
 
-    // Insert a new Admission - called when Admin admits a patient
     public boolean insertAdmission(Admission ad) {
         String query = "INSERT INTO Admission (AdmissionDate, DischargeDate, RoomNumber, RoomType, RoomCharge, " +
                 "Status, PatientID, DoctorID, AdminID, HospitalID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -38,8 +37,6 @@ public class AdmissionDAO {
         }
     }
 
-    // Fetch an Admission by ID - used constantly wherever AdmissionID needs full details
-    // (TestRequest chain, Bill generation, Patient viewing their admission status)
     public Admission getAdmissionById(int admissionId) {
         String query = "SELECT * FROM Admission WHERE AdmissionID = ?";
 
@@ -60,8 +57,6 @@ public class AdmissionDAO {
         return null;
     }
 
-    // Fetch all active (still ADMITTED) Admissions for a Doctor - used to show
-    // "Doctor's assigned patients" list, and for critical-patient ordering
     public List<Admission> getActiveAdmissionsByDoctor(int doctorId) {
         List<Admission> admissionList = new ArrayList<>();
         String query = "SELECT * FROM Admission WHERE DoctorID = ? AND Status = 'ADMITTED'";
@@ -83,8 +78,6 @@ public class AdmissionDAO {
         return admissionList;
     }
 
-    // Fetch all Admissions for a Patient - used to check admission history
-    // (also supports "returning patient -> suggest previous doctor" logic)
     public List<Admission> getAdmissionsByPatient(int patientId) {
         List<Admission> admissionList = new ArrayList<>();
         String query = "SELECT * FROM Admission WHERE PatientID = ?";
@@ -106,20 +99,6 @@ public class AdmissionDAO {
         return admissionList;
     }
 
-    // ================================================================
-    // PatientSummaryView-based methods
-    // These use the existing PatientSummaryView (Patient + Admission +
-    // Doctor + Hospital already joined in SQL) directly through ResultSet,
-    // instead of chaining several separate DAO calls together in Java.
-    // No new model/DTO class is created for the view - callers just read
-    // the specific fields they need off the returned array/list.
-    // ================================================================
-
-    // Fetch combined Patient + Doctor + Hospital summary fields for one Admission,
-    // using PatientSummaryView instead of separate getAdmissionById() + getDoctorById()
-    // + getPatientById() + getHospitalById() calls. Returns null if no matching row
-    // exists in the view (i.e. AdmissionID not found).
-    // Array layout: [0] = PatientID, [1] = PatientName, [2] = DoctorName, [3] = HospitalName
     public String[] getPatientSummaryByAdmissionId(int admissionId) {
         String query = "SELECT PatientID, PatientName, DoctorName, HospitalName " +
                 "FROM PatientSummaryView WHERE AdmissionID = ?";
@@ -146,9 +125,6 @@ public class AdmissionDAO {
         return null;
     }
 
-    // Fetch ready-to-print summary lines for a Doctor's currently ADMITTED patients,
-    // using PatientSummaryView. Replaces the old pattern of fetching a List<Admission>
-    // and then calling patientDAO.getPatientById() once per admission (N+1 queries).
     public List<String> getActivePatientSummariesByDoctor(int doctorId) {
         List<String> summaries = new ArrayList<>();
         String query = "SELECT AdmissionID, PatientName, RoomNumber, Status " +
@@ -175,7 +151,6 @@ public class AdmissionDAO {
         return summaries;
     }
 
-    // Helper method - builds an Admission object from a ResultSet row
     private Admission buildAdmissionFromResultSet(ResultSet rs) throws SQLException {
         Admission ad = new Admission();
         ad.setAdmissionID(rs.getInt("AdmissionID"));

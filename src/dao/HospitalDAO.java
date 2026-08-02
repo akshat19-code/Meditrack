@@ -7,7 +7,6 @@ import java.sql.*;
 
 public class HospitalDAO {
 
-    // Insert a new Hospital - called when Master Admin registers one
     public boolean insertHospital(Hospital h) {
         String query = "INSERT INTO Hospital (HospitalCode, HospitalName, Street, City, State, " +
                 "Pincode, PhoneNo, Email, Status, MasterAdminID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -36,8 +35,6 @@ public class HospitalDAO {
         }
     }
 
-    // Fetch a Hospital by its code - used at every login screen (Admin/Doctor/LabTech/Patient)
-    // to validate the Hospital Code and get the HospitalID for further queries
     public Hospital getHospitalByCode(String hospitalCode) {
         String query = "SELECT * FROM Hospital WHERE HospitalCode = ?";
 
@@ -58,7 +55,6 @@ public class HospitalDAO {
         return null;
     }
 
-    // Fetch a Hospital by ID - used whenever another table's HospitalID needs full hospital details
     public Hospital getHospitalById(int hospitalId) {
         String query = "SELECT * FROM Hospital WHERE HospitalID = ?";
 
@@ -79,7 +75,6 @@ public class HospitalDAO {
         return null;
     }
 
-    // Update Status only - used by Master Admin to suspend/reactivate/remove a hospital
     public boolean updateHospitalStatus(int hospitalId, String newStatus) {
         String query = "UPDATE Hospital SET Status = ? WHERE HospitalID = ?";
 
@@ -99,7 +94,6 @@ public class HospitalDAO {
         }
     }
 
-    // Fetch all Hospitals - used for Master Admin's system-wide reports view
     public java.util.List<Hospital> getAllHospitals() {
         java.util.List<Hospital> hospitalList = new java.util.ArrayList<>();
         String query = "SELECT * FROM Hospital";
@@ -119,7 +113,6 @@ public class HospitalDAO {
         return hospitalList;
     }
 
-    // Helper method - builds a Hospital object from a ResultSet row
     private Hospital buildHospitalFromResultSet(ResultSet rs) throws SQLException {
         Hospital h = new Hospital();
         h.setHospitalID(rs.getInt("HospitalID"));

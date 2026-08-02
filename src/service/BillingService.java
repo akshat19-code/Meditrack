@@ -14,15 +14,6 @@ public class BillingService {
     private BillDAO billDAO = new BillDAO();
     private FileManager fileManager = new FileManager();
 
-    // Called when Admin discharges a patient. Delegates the entire discharge +
-    // bill generation flow to the GenerateBillAndDischarge stored procedure,
-    // which internally uses CalculateBill(AdmissionID), inserts the Bill row,
-    // updates Admission.Status/DischargeDate (both using CURDATE()), and wraps
-    // it all in a transaction.
-    //
-    // Patient/Doctor/Hospital names needed for the bill file are fetched via
-    // PatientSummaryView in a single query, instead of the old chain of
-    // getAdmissionById() -> getDoctorById() -> getPatientById() -> getHospitalById().
     public boolean dischargeAndGenerateBill(int admissionId) {
 
         String[] summary = admissionDAO.getPatientSummaryByAdmissionId(admissionId);
@@ -46,7 +37,6 @@ public class BillingService {
             return false;
         }
 
-        // ---- Fetch the Bill the procedure just inserted, so we can write the file ----
         Bill savedBill = billDAO.getBillByAdmissionId(admissionId);
         if (savedBill == null) {
             System.out.println("Failed to retrieve generated bill.");

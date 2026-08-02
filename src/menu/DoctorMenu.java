@@ -1,14 +1,12 @@
 package menu;
 
 import dao.*;
-import ds.MenuStack;
+import ds.*;
 import model.*;
-import service.QueueService;
-import service.FileManager;
-import util.InputValidator;
+import service.*;
+import util.*;
 
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class DoctorMenu {
 

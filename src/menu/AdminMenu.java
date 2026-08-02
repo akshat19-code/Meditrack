@@ -1,15 +1,11 @@
 package menu;
 
 import dao.*;
-import ds.MenuStack;
+import ds.*;
 import model.*;
-import service.WorkloadManager;
-import service.BillingService;
-import service.FileManager;
-import util.InputValidator;
-
-import java.util.List;
-import java.util.Scanner;
+import service.*;
+import util.*;
+import java.util.*;
 
 public class AdminMenu {
 
@@ -136,7 +132,6 @@ public class AdminMenu {
 
         boolean success = doctorDAO.insertDoctor(d);
         System.out.println(success ? "Doctor added successfully!" : "Failed to add doctor.");
-
         navStack.pop();
     }
 
@@ -494,10 +489,6 @@ public class AdminMenu {
         navStack.pop();
     }
 
-    // Same pattern as Master Admin's Change Password - verify current
-    // password, ask new password twice, update DB and the in-memory
-    // loggedInAdmin object together so a repeat change in the same
-    // session compares against the fresh password, not a stale one.
     private void changePassword() {
         navStack.push("ChangePassword");
         System.out.println("\nPath: " + navStack.getPath());

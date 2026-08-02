@@ -9,7 +9,6 @@ import java.util.List;
 
 public class LabTechnicianDAO {
 
-    // Insert a new LabTechnician - called when Admin adds a lab technician
     public boolean insertLabTechnician(LabTechnician lt) {
         String query = "INSERT INTO LabTechnician (FirstName, LastName, Name, Username, Password, Email, PhoneNo, Qualification, HospitalID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -37,7 +36,6 @@ public class LabTechnicianDAO {
         }
     }
 
-    // Fetch a LabTechnician by Username within a specific Hospital - used for login
     public LabTechnician getLabTechnicianByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM LabTechnician WHERE Username = ? AND HospitalID = ?";
 
@@ -59,7 +57,6 @@ public class LabTechnicianDAO {
         return null;
     }
 
-    // Fetch a LabTechnician by ID - used when a Report needs to display who uploaded it
     public LabTechnician getLabTechnicianById(int labTechId) {
         String query = "SELECT * FROM LabTechnician WHERE LabTechID = ?";
 
@@ -80,8 +77,6 @@ public class LabTechnicianDAO {
         return null;
     }
 
-    // Fetch all Lab Technicians in a Hospital - used by Admin when viewing the
-    // lab technician list (mirrors DoctorDAO.getAllDoctorsByHospital())
     public List<LabTechnician> getAllLabTechniciansByHospital(int hospitalId) {
         List<LabTechnician> labTechList = new ArrayList<>();
         String query = "SELECT * FROM LabTechnician WHERE HospitalID = ?";
@@ -103,7 +98,6 @@ public class LabTechnicianDAO {
         return labTechList;
     }
 
-    // Update Password only - called when a Lab Technician uses "Change Password"
     public boolean updatePassword(int labTechId, String newPassword) {
         String query = "UPDATE LabTechnician SET Password = ? WHERE LabTechID = ?";
 
@@ -123,7 +117,6 @@ public class LabTechnicianDAO {
         }
     }
 
-    // Helper method - builds a LabTechnician object from a ResultSet row
     private LabTechnician buildLabTechFromResultSet(ResultSet rs) throws SQLException {
         LabTechnician lt = new LabTechnician();
         lt.setLabTechID(rs.getInt("LabTechID"));

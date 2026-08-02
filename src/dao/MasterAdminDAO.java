@@ -7,7 +7,6 @@ import java.sql.*;
 
 public class MasterAdminDAO {
 
-    // Fetch a MasterAdmin by Username - used for login
     public MasterAdmin getMasterAdminByUsername(String username) {
         String query = "SELECT * FROM MasterAdmin WHERE Username = ?";
 
@@ -35,7 +34,6 @@ public class MasterAdminDAO {
         return null;
     }
 
-    // Update Password only - called when Master Admin uses "Change Password"
     public boolean updatePassword(int masterAdminId, String newPassword) {
         String query = "UPDATE MasterAdmin SET Password = ? WHERE MasterAdminID = ?";
 

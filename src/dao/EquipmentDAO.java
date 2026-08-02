@@ -9,7 +9,6 @@ import java.util.List;
 
 public class EquipmentDAO {
 
-    // Insert a new Equipment - called only when findByEquipmentName finds no existing match
     public boolean insertEquipment(Equipment eq) {
         String query = "INSERT INTO Equipment (EquipmentName, Status, PurchaseDate, HospitalID) VALUES (?, ?, ?, ?)";
 
@@ -31,8 +30,6 @@ public class EquipmentDAO {
         }
     }
 
-    // Case-insensitive, hospital-scoped lookup - the core of the TestType auto-reuse feature.
-    // If this returns non-null, TestTypeService reuses this EquipmentID instead of creating a new row.
     public Equipment findByEquipmentName(String equipmentName, int hospitalId) {
         String query = "SELECT * FROM Equipment WHERE LOWER(EquipmentName) = LOWER(?) AND HospitalID = ?";
 
@@ -54,7 +51,6 @@ public class EquipmentDAO {
         return null;
     }
 
-    // Fetch Equipment by ID - used whenever TestType/TestRequest need full equipment details
     public Equipment getEquipmentById(int equipmentId) {
         String query = "SELECT * FROM Equipment WHERE EquipmentID = ?";
 
@@ -75,7 +71,6 @@ public class EquipmentDAO {
         return null;
     }
 
-    // Fetch all Equipment in a Hospital - used by Admin when viewing equipment list
     public List<Equipment> getAllEquipmentByHospital(int hospitalId) {
         List<Equipment> equipmentList = new ArrayList<>();
         String query = "SELECT * FROM Equipment WHERE HospitalID = ?";
@@ -97,7 +92,6 @@ public class EquipmentDAO {
         return equipmentList;
     }
 
-    // Helper method - builds an Equipment object from a ResultSet row
     private Equipment buildEquipmentFromResultSet(ResultSet rs) throws SQLException {
         Equipment eq = new Equipment();
         eq.setEquipmentID(rs.getInt("EquipmentID"));

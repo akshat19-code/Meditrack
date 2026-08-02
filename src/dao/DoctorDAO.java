@@ -4,12 +4,10 @@ import database.DatabaseConnection;
 import model.Doctor;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class DoctorDAO {
 
-    // Insert a new Doctor - called when Admin adds a doctor
     public boolean insertDoctor(Doctor d) {
         String query = "INSERT INTO Doctor (FirstName, LastName, Name, Username, Password, Email, PhoneNo, " +
                 "Specialization, Department, Qualification, ConsultationFee, PatientCount, HospitalID) " +
@@ -42,7 +40,6 @@ public class DoctorDAO {
         }
     }
 
-    // Fetch a Doctor by Username within a specific Hospital - used for login
     public Doctor getDoctorByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Doctor WHERE Username = ? AND HospitalID = ?";
 
@@ -64,8 +61,6 @@ public class DoctorDAO {
         return null;
     }
 
-    // Fetch a Doctor by ID - used whenever another table's DoctorID needs full details
-    // (e.g. showing Admission info, or Patient viewing their assigned doctor)
     public Doctor getDoctorById(int doctorId) {
         String query = "SELECT * FROM Doctor WHERE DoctorID = ?";
 
@@ -86,8 +81,6 @@ public class DoctorDAO {
         return null;
     }
 
-    // Fetch all Doctors in a Hospital - used by Workload Manager to find the least busy doctor,
-    // and by Admin when assigning a doctor to a new Admission
     public List<Doctor> getAllDoctorsByHospital(int hospitalId) {
         List<Doctor> doctorList = new ArrayList<>();
         String query = "SELECT * FROM Doctor WHERE HospitalID = ?";
@@ -109,7 +102,6 @@ public class DoctorDAO {
         return doctorList;
     }
 
-    // Update Password only - called when a Doctor uses "Change Password"
     public boolean updatePassword(int doctorId, String newPassword) {
         String query = "UPDATE Doctor SET Password = ? WHERE DoctorID = ?";
 
@@ -129,7 +121,6 @@ public class DoctorDAO {
         }
     }
 
-    // Helper method - builds a Doctor object from a ResultSet row
     private Doctor buildDoctorFromResultSet(ResultSet rs) throws SQLException {
         Doctor d = new Doctor();
         d.setDoctorID(rs.getInt("DoctorID"));
@@ -148,8 +139,7 @@ public class DoctorDAO {
         d.setHospitalID(rs.getInt("HospitalID"));
         return d;
     }
-    // Fetch a Doctor by Phone Number within a specific Hospital - used to enforce
-    // per-hospital phone number uniqueness when Admin adds a new doctor.
+
     public Doctor getDoctorByPhone(String phone, int hospitalId) {
         String query = "SELECT * FROM Doctor WHERE PhoneNo = ? AND HospitalID = ?";
 
@@ -170,8 +160,7 @@ public class DoctorDAO {
         }
         return null;
     }
-    // Fetch a Doctor by Email within a specific Hospital - used to enforce
-    // per-hospital email uniqueness when Admin adds a new doctor.
+
     public Doctor getDoctorByEmail(String email, int hospitalId) {
         String query = "SELECT * FROM Doctor WHERE Email = ? AND HospitalID = ?";
 

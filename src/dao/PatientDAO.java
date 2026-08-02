@@ -9,7 +9,6 @@ import java.util.List;
 
 public class PatientDAO {
 
-    // Insert a new Patient - called when Admin registers a patient
     public boolean insertPatient(Patient p) {
         String query = "INSERT INTO Patient (FirstName, LastName, Name, Username, Password, Email, PhoneNo, " +
                 "DOB, Gender, BloodGroup, Street, City, State, Pincode, HospitalID) " +
@@ -44,7 +43,6 @@ public class PatientDAO {
         }
     }
 
-    // Fetch a Patient by Username within a specific Hospital - used for login
     public Patient getPatientByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Username = ? AND HospitalID = ?";
 
@@ -66,8 +64,6 @@ public class PatientDAO {
         return null;
     }
 
-    // Fetch a Patient by ID - used constantly wherever PatientID needs full details
-    // (Admission, TestRequest chain, report history, etc.)
     public Patient getPatientById(int patientId) {
         String query = "SELECT * FROM Patient WHERE PatientID = ?";
 
@@ -88,8 +84,6 @@ public class PatientDAO {
         return null;
     }
 
-    // Find a Patient by Name + DOB within a Hospital - used by Admin during registration
-    // to check "is this a returning patient", so the system can suggest their previous doctor
     public Patient findReturningPatient(String name, String dob, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Name = ? AND DOB = ? AND HospitalID = ?";
 
@@ -112,7 +106,6 @@ public class PatientDAO {
         return null;
     }
 
-    // Fetch all Patients in a Hospital - used by Admin when viewing the patient list
     public List<Patient> getAllPatientsByHospital(int hospitalId) {
         List<Patient> patientList = new ArrayList<>();
         String query = "SELECT * FROM Patient WHERE HospitalID = ?";
@@ -156,7 +149,6 @@ public class PatientDAO {
         }
     }
 
-    // Update Password only - called when a Patient uses "Change Password"
     public boolean updatePassword(int patientId, String newPassword) {
         String query = "UPDATE Patient SET Password = ? WHERE PatientID = ?";
 
@@ -176,7 +168,6 @@ public class PatientDAO {
         }
     }
 
-    // Helper method - builds a Patient object from a ResultSet row
     private Patient buildPatientFromResultSet(ResultSet rs) throws SQLException {
         Patient p = new Patient();
         p.setPatientID(rs.getInt("PatientID"));

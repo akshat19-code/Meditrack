@@ -7,7 +7,6 @@ import java.sql.*;
 
 public class BillDAO {
 
-    // Insert a new Bill - called by BillingService right after Admin discharges a patient
     public boolean insertBill(Bill b) {
         String query = "INSERT INTO Bill (RoomCharge, DoctorFee, TestCharge, TotalAmount, BillDate, AdmissionID) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -32,8 +31,6 @@ public class BillDAO {
         }
     }
 
-    // Fetch a Bill by its AdmissionID - since Bill is 1:1 with Admission.
-    // Used when Patient views their final bill after discharge.
     public Bill getBillByAdmissionId(int admissionId) {
         String query = "SELECT * FROM Bill WHERE AdmissionID = ?";
 

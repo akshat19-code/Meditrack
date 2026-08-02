@@ -32,8 +32,6 @@ public class AuthService {
         return ma;
     }
 
-    // Shared first step for every other role - validates the Hospital Code exists
-    // and that the hospital is ACTIVE (not SUSPENDED/REMOVED)
     private Hospital validateHospital(String hospitalCode) {
         Hospital h = hospitalDAO.getHospitalByCode(hospitalCode);
 
@@ -48,7 +46,6 @@ public class AuthService {
         return h;
     }
 
-    // Hospital Admin login
     public Admin adminLogin(String hospitalCode, String username, String password) {
         Hospital h = validateHospital(hospitalCode);
         if (h == null) {
@@ -72,7 +69,6 @@ public class AuthService {
         return a;
     }
 
-    // Doctor login
     public Doctor doctorLogin(String hospitalCode, String username, String password) {
         Hospital h = validateHospital(hospitalCode);
         if (h == null) {
@@ -96,7 +92,6 @@ public class AuthService {
         return d;
     }
 
-    // Lab Technician login
     public LabTechnician labTechnicianLogin(String hospitalCode, String username, String password) {
         Hospital h = validateHospital(hospitalCode);
         if (h == null) {
@@ -120,7 +115,6 @@ public class AuthService {
         return lt;
     }
 
-    // Patient login
     public Patient patientLogin(String hospitalCode, String username, String password) {
         Hospital h = validateHospital(hospitalCode);
         if (h == null) {

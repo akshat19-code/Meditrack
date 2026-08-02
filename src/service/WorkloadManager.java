@@ -2,8 +2,7 @@ package service;
 
 import dao.*;
 import model.*;
-
-import java.util.List;
+import java.util.*;
 
 public class WorkloadManager {
 
@@ -11,8 +10,6 @@ public class WorkloadManager {
     private PatientDAO patientDAO = new PatientDAO();
     private AdmissionDAO admissionDAO = new AdmissionDAO();
 
-    // Finds the Doctor with the lowest PatientCount in a given Hospital.
-    // Called when Admin admits a new (non-returning) patient.
     public Doctor findLeastBusyDoctor(int hospitalId) {
         List<Doctor> doctors = doctorDAO.getAllDoctorsByHospital(hospitalId);
 
@@ -30,12 +27,10 @@ public class WorkloadManager {
         return leastBusy;
     }
 
-    // Checks if this is a returning patient (by Name + DOB) and if so,
-    // returns their most recent previous Doctor. Returns null if new patient.
     public Doctor suggestPreviousDoctor(String name, String dob, int hospitalId) {
         Patient existingPatient = patientDAO.findReturningPatient(name, dob, hospitalId);
         if (existingPatient == null) {
-            return null;   // not a returning patient
+            return null;
         }
 
         List<Admission> pastAdmissions = admissionDAO.getAdmissionsByPatient(existingPatient.getPatientID());
@@ -43,13 +38,10 @@ public class WorkloadManager {
             return null;
         }
 
-        // Most recent admission is the last one in the list (assuming insertion order)
         Admission mostRecent = pastAdmissions.get(pastAdmissions.size() - 1);
         return doctorDAO.getDoctorById(mostRecent.getDoctorID());
     }
 
-    // The single entry point Admin's "Assign Doctor" flow should call.
-    // Checks returning patient first, falls back to least-busy doctor otherwise.
     public Doctor assignDoctor(String name, String dob, int hospitalId) {
         Doctor previousDoctor = suggestPreviousDoctor(name, dob, hospitalId);
         if (previousDoctor != null) {
@@ -58,7 +50,7 @@ public class WorkloadManager {
         }
 
         Doctor leastBusy = findLeastBusyDoctor(hospitalId);
-        System.out.println("New patient - assigning least busy doctor: " +
+        System.out.println("New patient - assign least busy doctor: " +
                 (leastBusy != null ? leastBusy.getName() : "none available"));
         return leastBusy;
     }
