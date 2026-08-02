@@ -148,4 +148,26 @@ public class DoctorDAO {
         d.setHospitalID(rs.getInt("HospitalID"));
         return d;
     }
+    // Fetch a Doctor by Email within a specific Hospital - used to enforce
+    // per-hospital email uniqueness when Admin adds a new doctor.
+    public Doctor getDoctorByEmail(String email, int hospitalId) {
+        String query = "SELECT * FROM Doctor WHERE Email = ? AND HospitalID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, email);
+            pstmt.setInt(2, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildDoctorFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking Doctor email: " + e.getMessage());
+        }
+        return null;
+    }
 }

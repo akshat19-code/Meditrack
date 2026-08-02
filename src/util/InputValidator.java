@@ -180,4 +180,30 @@ public class InputValidator {
             }
         }
     }
+    // Keeps asking until the address contains at least one letter - rejects
+    // purely numeric input (e.g. "12345") while still allowing real addresses
+    // that mix numbers and letters (e.g. "221B Baker Street").
+    public static String readAddressString(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String value = sc.nextLine().trim();
+            if (!value.isEmpty() && value.matches(".*[a-zA-Z].*")) {
+                return value;
+            }
+            System.out.println("Please enter a valid address (must contain letters, not just numbers).");
+        }
+    }
+
+    // Keeps asking until the input looks like a real email address - a lightweight
+    // format check (something@something.something), not full RFC validation.
+    public static String readEmail(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String value = sc.nextLine().trim();
+            if (value.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                return value;
+            }
+            System.out.println("Please enter a valid email address (e.g. name@example.com).");
+        }
+    }
 }

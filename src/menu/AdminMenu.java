@@ -100,7 +100,7 @@ public class AdminMenu {
         }
 
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
-        String email = InputValidator.readNonEmptyString(sc, "Email: ");
+        String email = InputValidator.readEmail(sc, "Email: ");
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
         String specialization = InputValidator.readNonEmptyString(sc, "Specialization: ");
         String department = InputValidator.readNonEmptyString(sc, "Department: ");
@@ -171,7 +171,7 @@ public class AdminMenu {
         String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
         String username = InputValidator.readNonEmptyString(sc, "Username: ");
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
-        String email = InputValidator.readNonEmptyString(sc, "Email: ");
+        String email = InputValidator.readEmail(sc, "Email: ");
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
         String dob = InputValidator.readDate(sc, "DOB (YYYY-MM-DD): ", true);
 
@@ -185,7 +185,7 @@ public class AdminMenu {
                 new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"});
         sc.nextLine();
 
-        String street = InputValidator.readNonEmptyString(sc, "Street: ");
+        String street = InputValidator.readAddressString(sc, "Street: ");
         String city = InputValidator.readAlphabeticString(sc, "City: ");
         String state = InputValidator.readAlphabeticString(sc, "State: ");
         String pincode = InputValidator.readPincode(sc, "Pincode: ");

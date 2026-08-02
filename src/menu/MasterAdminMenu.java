@@ -78,13 +78,12 @@ public class MasterAdminMenu {
         System.out.print("Hospital Name: ");
         String name = sc.nextLine();
         System.out.print("Street: ");
-        String street = sc.nextLine();
+        String street = InputValidator.readAddressString(sc, "Street: ");
         String city = InputValidator.readAlphabeticString(sc, "City: ");
         String state = InputValidator.readAlphabeticString(sc, "State: ");
         String pincode = InputValidator.readPincode(sc, "Pincode: ");
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
-        System.out.print("Email: ");
-        String email = sc.nextLine();
+        String email = InputValidator.readEmail(sc, "Email: ");
 
         Hospital h = new Hospital();
         h.setHospitalCode(code);
@@ -163,6 +162,12 @@ public class MasterAdminMenu {
                 new String[]{"ACTIVE", "SUSPENDED", "REMOVED"});
 
         sc.nextLine();
+
+        if (h.getStatus().equalsIgnoreCase(status)) {
+            System.out.println("Hospital is already " + status + ". Status unchanged.");
+            navStack.pop();
+            return;
+        }
 
         if (status.equals("SUSPENDED") || status.equals("REMOVED")) {
             System.out.print("Are you sure you want to set this hospital to " + status + "? (Y/N): ");
