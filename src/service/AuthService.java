@@ -13,7 +13,7 @@ public class AuthService {
     private PatientDAO patientDAO = new PatientDAO();
     private FileManager fileManager = new FileManager();
 
-    // Master Admin login - no Hospital Code needed
+
     public MasterAdmin masterAdminLogin(String username, String password) {
         MasterAdmin ma = masterAdminDAO.getMasterAdminByUsername(username);
 

@@ -9,9 +9,6 @@ public class HealthScoreService {
 
     private ReportDAO reportDAO = new ReportDAO();
 
-    // Calculates a health score out of 100, based on the proportion of NORMAL
-    // reports vs the patient's total report history. CRITICAL results weigh
-    // more heavily against the score than ABNORMAL ones.
     public double calculateHealthScore(int patientId) {
         List<Report> reports = reportDAO.getReportsByPatient(patientId);
 
@@ -31,6 +28,6 @@ public class HealthScoreService {
         }
 
         double healthScore = totalScore / reports.size();
-        return Math.round(healthScore * 100.0) / 100.0;   // round to 2 decimal places
+        return Math.round(healthScore * 100.0) / 100.0;
     }
 }

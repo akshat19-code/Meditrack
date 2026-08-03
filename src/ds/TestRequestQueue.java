@@ -2,12 +2,11 @@ package ds;
 
 public class TestRequestQueue {
 
-    // Private inner Node class
     private class Node {
         int testRequestId;
         String patientName;
         String testName;
-        String priority;   // "NORMAL" or "EMERGENCY"
+        String priority;
         Node next;
 
         Node(int testRequestId, String patientName, String testName, String priority) {
@@ -19,8 +18,8 @@ public class TestRequestQueue {
         }
     }
 
-    private Node front;   // Lab Technician always processes from here
-    private Node rear;    // new NORMAL requests join here
+    private Node front;
+    private Node rear;
     private int size;
 
     public TestRequestQueue() {
@@ -29,7 +28,7 @@ public class TestRequestQueue {
         size = 0;
     }
 
-    // insertAtFront - used for EMERGENCY requests, so they jump ahead of everyone else
+
     private void insertAtFront(int testRequestId, String patientName, String testName, String priority) {
         Node newNode = new Node(testRequestId, patientName, testName, priority);
         if (isEmpty()) {
@@ -42,7 +41,7 @@ public class TestRequestQueue {
         size++;
     }
 
-    // insertAtRear - used for NORMAL requests, they join the back of the line
+
     private void insertAtRear(int testRequestId, String patientName, String testName, String priority) {
         Node newNode = new Node(testRequestId, patientName, testName, priority);
         if (isEmpty()) {
@@ -55,8 +54,6 @@ public class TestRequestQueue {
         size++;
     }
 
-    // enqueue - the single entry point every Doctor request goes through.
-    // Checks priority and decides where the request goes.
     public void enqueue(int testRequestId, String patientName, String testName, String priority) {
         if (priority.equalsIgnoreCase("EMERGENCY")) {
             insertAtFront(testRequestId, patientName, testName, priority);
@@ -67,31 +64,6 @@ public class TestRequestQueue {
         }
     }
 
-    // deleteFromFront - called by Lab Technician when picking up the next request to process
-    public int deleteFromFront() {
-        if (isEmpty()) {
-            System.out.println("No pending test requests.");
-            return -1;
-        }
-        int processedId = front.testRequestId;
-        System.out.println("Processing -> Patient: " + front.patientName +
-                " | Test: " + front.testName +
-                " | Priority: " + front.priority);
-
-        front = front.next;
-        if (front == null) {
-            rear = null;   // queue is now empty, reset rear too
-        }
-        size--;
-        return processedId;
-    }
-
-    // deleteFromFrontWithDetails - same removal logic as deleteFromFront(), but
-    // returns the patient name, test name, and priority as a String[] instead
-    // of only printing them - needed so QueueService can build the same
-    // structured display line regardless of which implementation is active.
-    // Array layout: [0] = TestRequestID, [1] = PatientName, [2] = TestName, [3] = Priority.
-    // Returns null if the queue is empty.
     public String[] deleteFromFrontWithDetails() {
         if (isEmpty()) {
             System.out.println("No pending test requests.");
@@ -114,19 +86,6 @@ public class TestRequestQueue {
         return details;
     }
 
-    // peek - view the next request to be processed, without removing it
-    public void peek() {
-        if (isEmpty()) {
-            System.out.println("Queue is empty.");
-            return;
-        }
-        System.out.println("Next in line -> Patient: " + front.patientName +
-                " | Test: " + front.testName +
-                " | Priority: " + front.priority +
-                " | Request ID: " + front.testRequestId);
-    }
-
-    // display - show the entire queue, front to rear
     public void display() {
         if (isEmpty()) {
             System.out.println("Queue is empty.");
@@ -148,7 +107,4 @@ public class TestRequestQueue {
         return front == null;
     }
 
-    public int getSize() {
-        return size;
-    }
 }

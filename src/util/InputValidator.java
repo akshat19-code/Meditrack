@@ -27,7 +27,7 @@ public class InputValidator {
                 return value;
             } catch (InputMismatchException e) {
                 System.out.println("Invalid input. Please enter a valid number (e.g. 100 or 100.50).");
-                sc.next(); // clears the bad token out of the Scanner buffer
+                sc.next();
             }
         }
     }
