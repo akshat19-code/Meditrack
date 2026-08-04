@@ -25,6 +25,19 @@ public class AdminMenu {
     private BillingService billingService = new BillingService();
     private FileManager fileManager = new FileManager();
 
+    private static final String[] ROOM_TYPE_LABELS = {"General", "Semi Private", "Private", "ICU"};
+    private static final String[] ROOM_TYPE_VALUES = {"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"};
+    private static final double[] ROOM_TYPE_CHARGES = {1000.0, 1800.0, 3000.0, 5000.0};
+
+    private static final String[] GENERAL_ROOMS =
+            {"101", "102", "103", "104", "105", "106", "107", "108", "109", "110"};
+    private static final String[] SEMI_PRIVATE_ROOMS =
+            {"201", "202", "203", "204", "205", "206", "207", "208", "209", "210"};
+    private static final String[] PRIVATE_ROOMS =
+            {"301", "302", "303", "304", "305", "306", "307", "308", "309", "310"};
+    private static final String[] ICU_ROOMS =
+            {"401", "402", "403", "404", "405", "406", "407", "408", "409", "410"};
+
     public AdminMenu(Scanner sc, MenuStack navStack, Admin a) {
         this.sc = sc;
         this.navStack = navStack;
@@ -98,9 +111,6 @@ public class AdminMenu {
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readEmail(sc, "Email: ");
 
-        // Email is now a GLOBAL uniqueness check (no HospitalID filter) -
-        // the same email address should not belong to two different doctors
-        // anywhere in the system, not just within this hospital.
         if (doctorDAO.getDoctorByEmail(email) != null) {
             System.out.println("A doctor with this email already exists.");
             navStack.pop();
@@ -109,7 +119,6 @@ public class AdminMenu {
 
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
 
-        // Phone number is now a GLOBAL uniqueness check, same reasoning as email.
         if (doctorDAO.getDoctorByPhone(phone) != null) {
             System.out.println("A doctor with this phone number already exists.");
             navStack.pop();
@@ -157,8 +166,6 @@ public class AdminMenu {
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readNonEmptyString(sc, "Email: ");
 
-        // NEW - Email checked GLOBALLY. This validation did not exist before;
-        // Lab Technician registration only checked username duplication.
         if (labTechDAO.getLabTechnicianByEmail(email) != null) {
             System.out.println("A lab technician with this email already exists.");
             navStack.pop();
@@ -167,7 +174,6 @@ public class AdminMenu {
 
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
 
-        // NEW - Phone number checked GLOBALLY, same reasoning as email above.
         if (labTechDAO.getLabTechnicianByPhone(phone) != null) {
             System.out.println("A lab technician with this phone number already exists.");
             navStack.pop();
@@ -226,9 +232,6 @@ public class AdminMenu {
         Patient newPatient;
 
         if (existingPatient != null) {
-            // Returning patient - reusing their existing record, so their own
-            // email/phone will naturally match themselves. Uniqueness checks
-            // below only apply to the genuinely-new-patient branch.
             System.out.println("Returning patient detected - reusing existing patient record.");
             newPatient = existingPatient;
         } else {
@@ -238,14 +241,12 @@ public class AdminMenu {
                 return;
             }
 
-            // NEW - Email checked GLOBALLY across all hospitals.
             if (patientDAO.getPatientByEmail(email) != null) {
                 System.out.println("A patient with this email already exists.");
                 navStack.pop();
                 return;
             }
 
-            // NEW - Phone number checked GLOBALLY across all hospitals.
             if (patientDAO.getPatientByPhone(phone) != null) {
                 System.out.println("A patient with this phone number already exists.");
                 navStack.pop();
@@ -288,15 +289,42 @@ public class AdminMenu {
             return;
         }
 
-        String roomNumber = InputValidator.readNonEmptyString(sc, "Room Number: ");
-
-        String roomType = InputValidator.readMenuChoice(sc, "Room Type:",
-                new String[]{"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"},
-                new String[]{"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"});
+        // ---- Requirement 5: Room Allocation Improvement ----
+        // Step 1: show available Room Types with their fixed charges.
+        printRoomTypeMenu();
+        int roomTypeChoice = InputValidator.readInt(sc, "Select Room Type: ");
         sc.nextLine();
 
-        double roomCharge = InputValidator.readPositiveDouble(sc, "Room Charge: ");
+        if (roomTypeChoice < 1 || roomTypeChoice > ROOM_TYPE_VALUES.length) {
+            System.out.println("Invalid room type selection. Admission cancelled.");
+            navStack.pop();
+            return;
+        }
+
+        String roomType = ROOM_TYPE_VALUES[roomTypeChoice - 1];
+        double roomCharge = ROOM_TYPE_CHARGES[roomTypeChoice - 1];
+
+        // Step 2: show only the available room numbers of the selected type.
+        List<String> availableRooms = getAvailableRoomNumbers(roomType);
+        if (availableRooms.isEmpty()) {
+            System.out.println("No available rooms of this type right now. Admission cancelled.");
+            navStack.pop();
+            return;
+        }
+
+        printAvailableRoomNumbers(availableRooms);
+        int roomChoice = InputValidator.readInt(sc, "Select Room Number (enter list no.): ");
         sc.nextLine();
+
+        if (roomChoice < 1 || roomChoice > availableRooms.size()) {
+            System.out.println("Invalid room selection. Admission cancelled.");
+            navStack.pop();
+            return;
+        }
+
+        String roomNumber = availableRooms.get(roomChoice - 1);
+        // Step 3: charge is auto-assigned from the selected Room Type - no manual entry.
+
         String admissionDate = InputValidator.readDate(sc, "Admission Date (YYYY-MM-DD): ", false);
 
         Admission ad = new Admission();
@@ -394,6 +422,15 @@ public class AdminMenu {
         navStack.push("DischargePatient");
         System.out.println("\nPath: " + navStack.getPath());
 
+        // Requirement 2: show available admissions before asking for an Admission ID.
+        List<Admission> activeAdmissions = getActiveAdmissionsForHospital();
+        if (activeAdmissions.isEmpty()) {
+            System.out.println("No currently admitted patients found.");
+            navStack.pop();
+            return;
+        }
+        printAdmissionTable(activeAdmissions);
+
         int admissionId = InputValidator.readInt(sc, "Enter Admission ID: ");
 
         Admission ad = admissionDAO.getAdmissionById(admissionId);
@@ -438,9 +475,7 @@ public class AdminMenu {
         if (doctors.isEmpty()) {
             System.out.println("No doctors found.");
         } else {
-            for (Doctor d : doctors) {
-                System.out.println(d);
-            }
+            printDoctorTable(doctors);
         }
 
         navStack.pop();
@@ -454,9 +489,7 @@ public class AdminMenu {
         if (labTechs.isEmpty()) {
             System.out.println("No lab technicians found.");
         } else {
-            for (LabTechnician lt : labTechs) {
-                System.out.println(lt);
-            }
+            printLabTechnicianTable(labTechs);
         }
 
         navStack.pop();
@@ -470,9 +503,7 @@ public class AdminMenu {
         if (testTypes.isEmpty()) {
             System.out.println("No test types found.");
         } else {
-            for (TestType tt : testTypes) {
-                System.out.println(tt);
-            }
+            printTestTypeTable(testTypes);
         }
 
         navStack.pop();
@@ -486,9 +517,7 @@ public class AdminMenu {
         if (equipmentList.isEmpty()) {
             System.out.println("No equipment found.");
         } else {
-            for (Equipment eq : equipmentList) {
-                System.out.println(eq);
-            }
+            printEquipmentTable(equipmentList);
         }
 
         navStack.pop();
@@ -519,9 +548,7 @@ public class AdminMenu {
         if (patients.isEmpty()) {
             System.out.println("No patients found.");
         } else {
-            for (Patient p : patients) {
-                System.out.println(p);
-            }
+            printPatientTable(patients);
         }
 
         navStack.pop();
@@ -559,5 +586,192 @@ public class AdminMenu {
         }
 
         navStack.pop();
+    }
+
+    // ==================== Private Table / Display Helpers ====================
+
+    private void printDoctorTable(List<Doctor> doctors) {
+        System.out.println("-".repeat(95));
+        System.out.printf("%-5s %-25s %-18s %-18s %-10s %-10s%n",
+                "ID", "Name", "Specialization", "Department", "Patients", "Fee");
+        System.out.println("-".repeat(95));
+
+        for (Doctor d : doctors) {
+            System.out.printf("%-5d %-25s %-18s %-18s %-10d Rs.%-8.2f%n",
+                    d.getDoctorID(),
+                    d.getName(),
+                    d.getSpecialization(),
+                    d.getDepartment(),
+                    d.getPatientCount(),
+                    d.getConsultationFee());
+        }
+
+        System.out.println("-".repeat(95));
+    }
+
+    private void printLabTechnicianTable(List<LabTechnician> labTechs) {
+        System.out.println("-".repeat(75));
+        System.out.printf("%-5s %-25s %-20s %-15s%n",
+                "ID", "Name", "Qualification", "Phone");
+        System.out.println("-".repeat(75));
+
+        for (LabTechnician lt : labTechs) {
+            System.out.printf("%-5d %-25s %-20s %-15s%n",
+                    lt.getLabTechID(),
+                    lt.getName(),
+                    lt.getQualification(),
+                    lt.getPhoneNo());
+        }
+
+        System.out.println("-".repeat(75));
+    }
+
+    private void printTestTypeTable(List<TestType> testTypes) {
+        System.out.println("-".repeat(90));
+        System.out.printf("%-5s %-30s %-20s %-10s%n",
+                "ID", "Test Name", "Normal Range", "Charge");
+        System.out.println("-".repeat(90));
+
+        for (TestType tt : testTypes) {
+            String range = String.format("%.2f - %.2f %s", tt.getNormalMin(), tt.getNormalMax(), tt.getUnit());
+            System.out.printf("%-5d %-30s %-20s Rs.%-8.2f%n",
+                    tt.getTestTypeID(),
+                    tt.getTestName(),
+                    range,
+                    tt.getTestCharge());
+        }
+
+        System.out.println("-".repeat(90));
+    }
+
+    private void printEquipmentTable(List<Equipment> equipmentList) {
+        System.out.println("-".repeat(80));
+        System.out.printf("%-5s %-30s %-15s %-15s%n",
+                "ID", "Equipment Name", "Status", "Purchase Date");
+        System.out.println("-".repeat(80));
+
+        for (Equipment eq : equipmentList) {
+            System.out.printf("%-5d %-30s %-15s %-15s%n",
+                    eq.getEquipmentID(),
+                    eq.getEquipmentName(),
+                    eq.getStatus(),
+                    eq.getPurchaseDate());
+        }
+
+        System.out.println("-".repeat(80));
+    }
+
+    private void printPatientTable(List<Patient> patients) {
+        System.out.println("-".repeat(90));
+        System.out.printf("%-5s %-25s %-12s %-8s %-10s %-15s%n",
+                "ID", "Name", "DOB", "Gender", "Blood Grp", "City");
+        System.out.println("-".repeat(90));
+
+        for (Patient p : patients) {
+            System.out.printf("%-5d %-25s %-12s %-8s %-10s %-15s%n",
+                    p.getPatientID(),
+                    p.getName(),
+                    p.getDob(),
+                    p.getGender(),
+                    p.getBloodGroup(),
+                    p.getCity());
+        }
+
+        System.out.println("-".repeat(90));
+    }
+
+    private void printAdmissionTable(List<Admission> admissions) {
+        System.out.println("-".repeat(90));
+        System.out.printf("%-14s %-25s %-12s %-15s %-12s%n",
+                "Admission ID", "Patient Name", "Room No.", "Room Type", "Status");
+        System.out.println("-".repeat(90));
+
+        for (Admission ad : admissions) {
+            Patient p = patientDAO.getPatientById(ad.getPatientID());
+            String patientName = (p != null) ? p.getName() : "Unknown";
+
+            System.out.printf("%-14d %-25s %-12s %-15s %-12s%n",
+                    ad.getAdmissionID(),
+                    patientName,
+                    ad.getRoomNumber(),
+                    ad.getRoomType(),
+                    ad.getStatus());
+        }
+
+        System.out.println("-".repeat(90));
+    }
+
+    private void printRoomTypeMenu() {
+        System.out.println("-".repeat(40));
+        System.out.printf("%-5s %-15s %-10s%n", "No.", "Room Type", "Charge");
+        System.out.println("-".repeat(40));
+
+        for (int i = 0; i < ROOM_TYPE_LABELS.length; i++) {
+            System.out.printf("%-5d %-15s Rs.%-8.2f%n",
+                    (i + 1), ROOM_TYPE_LABELS[i], ROOM_TYPE_CHARGES[i]);
+        }
+
+        System.out.println("-".repeat(40));
+    }
+
+    private void printAvailableRoomNumbers(List<String> rooms) {
+        System.out.println("-".repeat(30));
+        System.out.printf("%-5s %-10s%n", "No.", "Room No.");
+        System.out.println("-".repeat(30));
+
+        for (int i = 0; i < rooms.size(); i++) {
+            System.out.printf("%-5d %-10s%n", (i + 1), rooms.get(i));
+        }
+
+        System.out.println("-".repeat(30));
+    }
+
+    // ==================== Private Data Helpers (composition only, no DAO changes) ====================
+
+    private List<Admission> getActiveAdmissionsForHospital() {
+        List<Admission> result = new ArrayList<>();
+        List<Patient> patients = patientDAO.getAllPatientsByHospital(loggedInAdmin.getHospitalID());
+
+        for (Patient p : patients) {
+            List<Admission> admissions = admissionDAO.getAdmissionsByPatient(p.getPatientID());
+            for (Admission ad : admissions) {
+                if (ad.getStatus().equalsIgnoreCase("ADMITTED")) {
+                    result.add(ad);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private String[] getRoomPoolForType(String roomType) {
+        return switch (roomType) {
+            case "GENERAL" -> GENERAL_ROOMS;
+            case "SEMI_PRIVATE" -> SEMI_PRIVATE_ROOMS;
+            case "PRIVATE" -> PRIVATE_ROOMS;
+            case "ICU" -> ICU_ROOMS;
+            default -> new String[0];
+        };
+    }
+
+    private List<String> getAvailableRoomNumbers(String roomType) {
+        String[] pool = getRoomPoolForType(roomType);
+        List<Admission> activeAdmissions = getActiveAdmissionsForHospital();
+
+        Set<String> occupied = new HashSet<>();
+        for (Admission ad : activeAdmissions) {
+            if (ad.getRoomType() != null && ad.getRoomType().equalsIgnoreCase(roomType)) {
+                occupied.add(ad.getRoomNumber());
+            }
+        }
+
+        List<String> available = new ArrayList<>();
+        for (String room : pool) {
+            if (!occupied.contains(room)) {
+                available.add(room);
+            }
+        }
+
+        return available;
     }
 }

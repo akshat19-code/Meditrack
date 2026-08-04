@@ -65,16 +65,13 @@ public class DoctorMenu {
     private void viewAssignedPatients() {
         navStack.push("ViewAssignedPatients");
         System.out.println("\nPath: " + navStack.getPath());
-        System.out.println("Logged In Doctor ID = " + loggedInDoctor.getDoctorID());
 
-        List<String> summaries = admissionDAO.getActivePatientSummariesByDoctor(loggedInDoctor.getDoctorID());
+        List<Admission> admissions = admissionDAO.getActiveAdmissionsByDoctor(loggedInDoctor.getDoctorID());
 
-        if (summaries.isEmpty()) {
+        if (admissions.isEmpty()) {
             System.out.println("No currently assigned patients.");
         } else {
-            for (String line : summaries) {
-                System.out.println(line);
-            }
+            printAssignedPatientsTable(admissions);
         }
 
         navStack.pop();
@@ -107,9 +104,7 @@ public class DoctorMenu {
 
         System.out.println("Available Test Types:");
         List<TestType> testTypes = testTypeDAO.getAllTestTypesByHospital(loggedInDoctor.getHospitalID());
-        for (TestType tt : testTypes) {
-            System.out.println(tt);
-        }
+        printTestTypeTable(testTypes);
 
         int testTypeId = InputValidator.readInt(sc, "Enter Test Type ID: ");
         sc.nextLine();
@@ -152,6 +147,14 @@ public class DoctorMenu {
     private void reviewReport() {
         navStack.push("ReviewReport");
         System.out.println("\nPath: " + navStack.getPath());
+
+        List<Report> reports = reportDAO.getReportsByDoctor(loggedInDoctor.getDoctorID());
+        if (reports.isEmpty()) {
+            System.out.println("No reports available for your patients yet.");
+            navStack.pop();
+            return;
+        }
+        printReportSummaryTable(reports);
 
         int reportId = InputValidator.readInt(sc, "Enter Report ID: ");
         sc.nextLine();
@@ -228,5 +231,82 @@ public class DoctorMenu {
         }
 
         navStack.pop();
+    }
+
+    // ==================== Private Table / Display Helpers ====================
+
+    private void printAssignedPatientsTable(List<Admission> admissions) {
+        System.out.println("-".repeat(90));
+        System.out.printf("%-14s %-25s %-12s %-15s %-12s%n",
+                "Admission ID", "Patient Name", "Room No.", "Room Type", "Status");
+        System.out.println("-".repeat(90));
+
+        for (Admission ad : admissions) {
+            Patient p = patientDAO.getPatientById(ad.getPatientID());
+            String patientName = (p != null) ? p.getName() : "Unknown";
+
+            System.out.printf("%-14d %-25s %-12s %-15s %-12s%n",
+                    ad.getAdmissionID(),
+                    patientName,
+                    ad.getRoomNumber(),
+                    ad.getRoomType(),
+                    ad.getStatus());
+        }
+
+        System.out.println("-".repeat(90));
+    }
+
+    private void printTestTypeTable(List<TestType> testTypes) {
+        System.out.println("-".repeat(90));
+        System.out.printf("%-5s %-30s %-20s %-10s%n",
+                "ID", "Test Name", "Normal Range", "Charge");
+        System.out.println("-".repeat(90));
+
+        for (TestType tt : testTypes) {
+            String range = String.format("%.2f - %.2f %s", tt.getNormalMin(), tt.getNormalMax(), tt.getUnit());
+            System.out.printf("%-5d %-30s %-20s Rs.%-8.2f%n",
+                    tt.getTestTypeID(),
+                    tt.getTestName(),
+                    range,
+                    tt.getTestCharge());
+        }
+
+        System.out.println("-".repeat(90));
+    }
+
+    private void printReportSummaryTable(List<Report> reports) {
+        System.out.println("-".repeat(100));
+        System.out.printf("%-6s %-22s %-22s %-12s %-12s%n",
+                "RepID", "Patient", "Test", "Status", "Date");
+        System.out.println("-".repeat(100));
+
+        for (Report r : reports) {
+            String patientName = "Unknown";
+            String testName = "Unknown Test";
+
+            TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
+            if (tr != null) {
+                Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
+                if (ad != null) {
+                    Patient p = patientDAO.getPatientById(ad.getPatientID());
+                    if (p != null) {
+                        patientName = p.getName();
+                    }
+                }
+                TestType tt = testTypeDAO.getTestTypeById(tr.getTestTypeID());
+                if (tt != null) {
+                    testName = tt.getTestName();
+                }
+            }
+
+            System.out.printf("%-6d %-22s %-22s %-12s %-12s%n",
+                    r.getReportID(),
+                    patientName,
+                    testName,
+                    r.getResultStatus(),
+                    r.getAnalysisDate());
+        }
+
+        System.out.println("-".repeat(100));
     }
 }

@@ -18,6 +18,8 @@ public class LabTechnicianMenu {
     private TestRequestDAO testRequestDAO = new TestRequestDAO();
     private AdmissionDAO admissionDAO = new AdmissionDAO();
     private LabTechnicianDAO labTechDAO = new LabTechnicianDAO();
+    private PatientDAO patientDAO = new PatientDAO();
+    private TestTypeDAO testTypeDAO = new TestTypeDAO();
 
     public LabTechnicianMenu(Scanner sc, MenuStack navStack, LabTechnician lt) {
         this.sc = sc;
@@ -78,10 +80,7 @@ public class LabTechnicianMenu {
 
         if (details != null) {
             System.out.println("Now processing:");
-            System.out.println("Request ID: " + details[0] +
-                    " | Patient: " + details[1] +
-                    " | Test: " + details[2] +
-                    " | Priority: " + details[3]);
+            printRequestDetails(details);
             System.out.println("(remember this Request ID to upload its result next)");
         }
 
@@ -91,6 +90,16 @@ public class LabTechnicianMenu {
     private void uploadResult() {
         navStack.push("UploadResult");
         System.out.println("\nPath: " + navStack.getPath());
+
+        List<TestRequest> processingRequests =
+                testRequestDAO.getRequestsByStatusForHospital(loggedInLabTech.getHospitalID(), "PROCESSING");
+
+        if (processingRequests.isEmpty()) {
+            System.out.println("No test requests are currently being processed.");
+            System.out.println("(Use 'Process Next Request' first to move a request into PROCESSING.)");
+        } else {
+            printProcessingRequestsTable(processingRequests);
+        }
 
         int testRequestId = InputValidator.readInt(sc, "Enter Test Request ID (that you are currently processing): ");
 
@@ -152,5 +161,48 @@ public class LabTechnicianMenu {
         }
 
         navStack.pop();
+    }
+
+    // ==================== Private Display Helpers ====================
+
+    // details = { testRequestId, patientName, testName, priority }
+    private void printRequestDetails(String[] details) {
+        System.out.println("-".repeat(70));
+        System.out.printf("%-15s %-20s %-20s %-10s%n",
+                "Request ID", "Patient", "Test", "Priority");
+        System.out.println("-".repeat(70));
+        System.out.printf("%-15s %-20s %-20s %-10s%n",
+                details[0], details[1], details[2], details[3]);
+        System.out.println("-".repeat(70));
+    }
+
+    private void printProcessingRequestsTable(List<TestRequest> requests) {
+        System.out.println("-".repeat(95));
+        System.out.printf("%-6s %-22s %-22s %-10s %-15s%n",
+                "ReqID", "Patient", "Test", "Priority", "Usage Date");
+        System.out.println("-".repeat(95));
+
+        for (TestRequest tr : requests) {
+            String patientName = "Unknown";
+            Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
+            if (ad != null) {
+                Patient p = patientDAO.getPatientById(ad.getPatientID());
+                if (p != null) {
+                    patientName = p.getName();
+                }
+            }
+
+            TestType tt = testTypeDAO.getTestTypeById(tr.getTestTypeID());
+            String testName = (tt != null) ? tt.getTestName() : "Unknown Test";
+
+            System.out.printf("%-6d %-22s %-22s %-10s %-15s%n",
+                    tr.getTestRequestID(),
+                    patientName,
+                    testName,
+                    tr.getPriority(),
+                    tr.getEquipmentUsageDate());
+        }
+
+        System.out.println("-".repeat(95));
     }
 }

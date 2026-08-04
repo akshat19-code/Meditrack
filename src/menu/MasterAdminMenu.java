@@ -126,9 +126,7 @@ public class MasterAdminMenu {
         if (hospitals.isEmpty()) {
             System.out.println("No hospitals registered yet.");
         } else {
-            for (Hospital h : hospitals) {
-                System.out.println(h);
-            }
+            printHospitalTable(hospitals);
         }
 
         navStack.pop();
@@ -146,10 +144,7 @@ public class MasterAdminMenu {
         }
 
         System.out.println("---- Existing Hospitals ----");
-        for (Hospital h : hospitals) {
-            System.out.println(h);
-        }
-        System.out.println("----------------------------");
+        printHospitalTable(hospitals);
 
         int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
 
@@ -205,7 +200,7 @@ public class MasterAdminMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         String log = fileManager.readSystemLoginLog();
-        System.out.println(log);
+        printLoginLogTable(log);
 
         navStack.pop();
     }
@@ -221,20 +216,20 @@ public class MasterAdminMenu {
             return;
         }
 
-        String[] labels = new String[hospitals.size()];
-        String[] values = new String[hospitals.size()];
+        printHospitalTable(hospitals);
 
-        for (int i = 0; i < hospitals.size(); i++) {
-            Hospital h = hospitals.get(i);
-            labels[i] = h.getHospitalName() + " (" + h.getHospitalCode() + ")";
-            values[i] = h.getHospitalCode();
-        }
-
-        String selectedCode = InputValidator.readMenuChoice(sc, "Select Hospital:", labels, values);
+        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
         sc.nextLine();
 
-        String log = fileManager.readHospitalLoginLog(selectedCode);
-        System.out.println(log);
+        Hospital h = hospitalDAO.getHospitalById(hospitalId);
+        if (h == null) {
+            System.out.println("Hospital not found.");
+            navStack.pop();
+            return;
+        }
+
+        String log = fileManager.readHospitalLoginLog(h.getHospitalCode());
+        printLoginLogTable(log);
 
         navStack.pop();
     }
@@ -284,29 +279,19 @@ public class MasterAdminMenu {
             return;
         }
 
-        String[] labels = new String[hospitals.size()];
-        Integer[] hospitalIds = new Integer[hospitals.size()];
+        printHospitalTable(hospitals);
 
-        for (int i = 0; i < hospitals.size(); i++) {
-            Hospital h = hospitals.get(i);
-            labels[i] = h.getHospitalName() + " (" + h.getHospitalCode() + ")";
-            hospitalIds[i] = h.getHospitalID();
-        }
-
-        System.out.println("---- Select Hospital ----");
-        for (int i = 0; i < labels.length; i++) {
-            System.out.println((i + 1) + ". " + labels[i]);
-        }
-        int choice = InputValidator.readInt(sc, "Enter choice: ");
+        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
         sc.nextLine();
 
-        if (choice < 1 || choice > hospitalIds.length) {
-            System.out.println("Invalid choice.");
+        Hospital h = hospitalDAO.getHospitalById(hospitalId);
+        if (h == null) {
+            System.out.println("Hospital not found.");
             navStack.pop();
             return;
         }
 
-        createAdminForHospital(hospitalIds[choice - 1]);
+        createAdminForHospital(hospitalId);
 
         navStack.pop();
     }
@@ -326,7 +311,6 @@ public class MasterAdminMenu {
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
         String email = InputValidator.readEmail(sc, "Email: ");
 
-        // NEW - Email checked GLOBALLY across all hospitals.
         if (adminDAO.getAdminByEmail(email) != null) {
             System.out.println("An admin with this email already exists.");
             return;
@@ -334,7 +318,6 @@ public class MasterAdminMenu {
 
         String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
 
-        // NEW - Phone number checked GLOBALLY across all hospitals.
         if (adminDAO.getAdminByPhone(phone) != null) {
             System.out.println("An admin with this phone number already exists.");
             return;
@@ -351,5 +334,103 @@ public class MasterAdminMenu {
 
         boolean success = adminDAO.insertAdmin(a);
         System.out.println(success ? "Hospital Admin added successfully!" : "Failed to add Hospital Admin.");
+    }
+
+    private void printHospitalTable(List<Hospital> hospitals){
+        System.out.println("-".repeat(85));
+        System.out.printf("%-5s %-8s %-35s %-15s %-10s%n",
+                "ID",
+                "Code",
+                "Hospital Name",
+                "City",
+                "Status");
+        System.out.println("-".repeat(85));
+
+        for (Hospital h : hospitals) {
+            System.out.printf("%-5d %-8s %-35s %-15s %-10s%n",
+                    h.getHospitalID(),
+                    h.getHospitalCode(),
+                    h.getHospitalName(),
+                    h.getCity(),
+                    h.getStatus());
+        }
+
+        System.out.println("-".repeat(85));
+    }
+
+    // Parses and displays a raw login log (as written by FileManager) in a
+    // formatted table. Purely a display-layer transformation - does not
+    // change how logs are written or stored.
+    private void printLoginLogTable(String log) {
+        if (log == null || log.isBlank()) {
+            System.out.println("No login records found.");
+            return;
+        }
+
+        String[] lines = log.split("\r?\n");
+        List<String[]> rows = new ArrayList<>();
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            String[] parsed = parseLoginLogLine(trimmed);
+            if (parsed != null) {
+                rows.add(parsed);
+            }
+        }
+
+        if (rows.isEmpty()) {
+            System.out.println("No login records found.");
+            return;
+        }
+
+        System.out.println("-".repeat(97));
+        System.out.printf("%-23s %-10s %-17s %-21s %-15s%n",
+                "Timestamp", "Status", "Role", "Username", "Hospital Code");
+        System.out.println("-".repeat(97));
+
+        for (String[] row : rows) {
+            System.out.printf("%-23s %-10s %-17s %-21s %-15s%n",
+                    row[0], row[1], row[2], row[3], row[4]);
+        }
+
+        System.out.println("-".repeat(97));
+    }
+
+    // Expects lines of the form:
+    // [2026-08-03 21:39:21] SUCCESS | Role: MASTER_ADMIN | Username: arvind.admin | Hospital Code: N/A
+    // Returns { timestamp, status, role, username, hospitalCode }, or null if the line doesn't match.
+    private String[] parseLoginLogLine(String line) {
+        try {
+            if (!line.startsWith("[")) {
+                return null;
+            }
+
+            int closeBracket = line.indexOf(']');
+            if (closeBracket == -1) {
+                return null;
+            }
+
+            String timestamp = line.substring(1, closeBracket).trim();
+            String remainder = line.substring(closeBracket + 1).trim();
+
+            String[] parts = remainder.split("\\|");
+            if (parts.length < 4) {
+                return null;
+            }
+
+            String status = parts[0].trim();
+            String role = parts[1].replace("Role:", "").trim();
+            String username = parts[2].replace("Username:", "").trim();
+            String hospitalCode = parts[3].replace("Hospital Code:", "").trim();
+
+            return new String[]{timestamp, status, role, username, hospitalCode};
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

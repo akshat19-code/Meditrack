@@ -71,12 +71,8 @@ public class PatientMenu {
         navStack.push("ViewMyDetails");
         System.out.println("\nPath: " + navStack.getPath());
 
-        System.out.println(loggedInPatient);
-
         int age = patientDAO.calculateAge(loggedInPatient.getDob());
-        if (age >= 0) {
-            System.out.println("Age: " + age + " years");
-        }
+        printPatientDetails(loggedInPatient, age);
 
         navStack.pop();
     }
@@ -130,20 +126,7 @@ public class PatientMenu {
         if (admissions.isEmpty()) {
             System.out.println("No admission records found.");
         } else {
-            for (Admission ad : admissions) {
-                Doctor d = doctorDAO.getDoctorById(ad.getDoctorID());
-                String doctorName = (d != null) ? d.getName() : "Unknown Doctor";
-
-                System.out.println(ad);
-                System.out.println("Attending Doctor: " + doctorName);
-
-                if (ad.getStatus().equalsIgnoreCase("DISCHARGED")) {
-                    Bill b = billDAO.getBillByAdmissionId(ad.getAdmissionID());
-                    if (b != null) {
-                        System.out.println(b);
-                    }
-                }
-            }
+            printAdmissionBillTable(admissions);
         }
 
         navStack.pop();
@@ -191,5 +174,59 @@ public class PatientMenu {
         }
 
         navStack.pop();
+    }
+
+    // ==================== Private Display Helpers ====================
+
+    private void printPatientDetails(Patient p, int age) {
+        System.out.println("-".repeat(60));
+        System.out.printf("%-15s: %s%n", "Patient ID", p.getPatientID());
+        System.out.printf("%-15s: %s%n", "Name", p.getName());
+        System.out.printf("%-15s: %s%n", "DOB", p.getDob());
+        if (age >= 0) {
+            System.out.printf("%-15s: %d years%n", "Age", age);
+        }
+        System.out.printf("%-15s: %s%n", "Gender", p.getGender());
+        System.out.printf("%-15s: %s%n", "Blood Group", p.getBloodGroup());
+        System.out.printf("%-15s: %s%n", "Phone", p.getPhoneNo());
+        System.out.printf("%-15s: %s%n", "Email", p.getEmail());
+        System.out.printf("%-15s: %s, %s, %s - %s%n", "Address",
+                p.getStreet(), p.getCity(), p.getState(), p.getPincode());
+        System.out.println("-".repeat(60));
+    }
+
+    private void printAdmissionBillTable(List<Admission> admissions) {
+        System.out.println("-".repeat(112));
+        System.out.printf("%-6s %-20s %-10s %-13s %-11s %-14s %-14s %-12s%n",
+                "AdmID", "Doctor", "Room No.", "Room Type", "Status", "Admitted", "Discharged", "Bill Total");
+        System.out.println("-".repeat(112));
+
+        for (Admission ad : admissions) {
+            Doctor d = doctorDAO.getDoctorById(ad.getDoctorID());
+            String doctorName = (d != null) ? d.getName() : "Unknown Doctor";
+
+            String dischargeDisplay = (ad.getDischargeDate() == null || ad.getDischargeDate().isBlank())
+                    ? "-" : ad.getDischargeDate();
+
+            String billDisplay = "-";
+            if (ad.getStatus().equalsIgnoreCase("DISCHARGED")) {
+                Bill b = billDAO.getBillByAdmissionId(ad.getAdmissionID());
+                if (b != null) {
+                    billDisplay = "Rs." + String.format("%.2f", b.getTotalAmount());
+                }
+            }
+
+            System.out.printf("%-6d %-20s %-10s %-13s %-11s %-14s %-14s %-12s%n",
+                    ad.getAdmissionID(),
+                    doctorName,
+                    ad.getRoomNumber(),
+                    ad.getRoomType(),
+                    ad.getStatus(),
+                    ad.getAdmissionDate(),
+                    dischargeDisplay,
+                    billDisplay);
+        }
+
+        System.out.println("-".repeat(112));
     }
 }

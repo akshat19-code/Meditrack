@@ -132,6 +132,34 @@ public class ReportDAO {
         return reportList;
     }
 
+    // NEW - fetches all Reports belonging to the given Doctor's patients,
+    // following the same join pattern as getReportsByPatient. Added to
+    // support showing a Doctor's report list before asking for a Report ID.
+    public List<Report> getReportsByDoctor(int doctorId) {
+        List<Report> reportList = new ArrayList<>();
+        String query = "SELECT r.* FROM Report r " +
+                "JOIN TestRequest tr ON r.TestRequestID = tr.TestRequestID " +
+                "JOIN Admission a ON tr.AdmissionID = a.AdmissionID " +
+                "WHERE a.DoctorID = ? " +
+                "ORDER BY r.AnalysisDate DESC";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, doctorId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                reportList.add(buildReportFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Doctor Reports: " + e.getMessage());
+        }
+        return reportList;
+    }
+
     private Report buildReportFromResultSet(ResultSet rs) throws SQLException {
         Report r = new Report();
         r.setReportID(rs.getInt("ReportID"));

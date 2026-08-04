@@ -84,6 +84,33 @@ public class TestRequestDAO {
         return requestList;
     }
 
+    // NEW - generic status-filtered version of getPendingTestRequests, added
+    // to support showing a hospital's currently-PROCESSING requests before
+    // asking a Lab Technician for a Test Request ID during result upload.
+    public List<TestRequest> getRequestsByStatusForHospital(int hospitalId, String status) {
+        List<TestRequest> requestList = new ArrayList<>();
+        String query = "SELECT tr.* FROM TestRequest tr " +
+                "JOIN Admission a ON tr.AdmissionID = a.AdmissionID " +
+                "WHERE a.HospitalID = ? AND tr.Status = ? " +
+                "ORDER BY tr.RequestDate ASC";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            pstmt.setString(2, status);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                requestList.add(buildTestRequestFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching TestRequests by status: " + e.getMessage());
+        }
+        return requestList;
+    }
 
     public boolean updateTestRequestStatus(int testRequestId, String newStatus) {
         String query = "UPDATE TestRequest SET Status = ? WHERE TestRequestID = ?";
