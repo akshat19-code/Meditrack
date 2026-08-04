@@ -63,100 +63,144 @@ public class MainMenu {
     }
 
     private void adminLoginFlow() {
-        System.out.print("Hospital Code: ");
-        String code = sc.next();
 
-        Hospital h = hospitalDAO.getHospitalByCode(code);
-        if (h == null) {
-            System.out.println("Invalid Hospital Code. No such hospital found.");
-            return;
-        }
-        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
-            System.out.println("Your hospital is " + h.getStatus() + ".");
-            return;
+        Hospital h;
+
+        while (true) {
+            System.out.print("Hospital Code: ");
+            String code = sc.next();
+
+            h = hospitalDAO.getHospitalByCode(code);
+
+            if (h == null) {
+                System.out.println("Invalid Hospital Code. No such hospital found.");
+                continue;
+            }
+
+            if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+                System.out.println("Hospital is " + h.getStatus() + ". Login denied.");
+                return;
+            }
+
+            break;
         }
 
         System.out.print("Username: ");
         String username = sc.next();
+
         System.out.print("Password: ");
         String password = sc.next();
 
-        Admin a = authService.adminLogin(code, username, password);
+        Admin a = authService.adminLogin(h.getHospitalCode(), username, password);
+
         if (a != null) {
             new AdminMenu(sc, navStack, a).show();
         }
     }
 
     private void doctorLoginFlow() {
-        System.out.print("Hospital Code: ");
-        String code = sc.next();
 
-        Hospital h = hospitalDAO.getHospitalByCode(code);
-        if (h == null) {
-            System.out.println("Invalid Hospital Code. No such hospital found.");
-            return;
-        }
-        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
-            System.out.println("Your hospital is " + h.getStatus() + ".");
-            return;
+        Hospital h;
+
+        while (true) {
+            System.out.print("Hospital Code: ");
+            String code = sc.next();
+
+            h = hospitalDAO.getHospitalByCode(code);
+
+            if (h == null) {
+                System.out.println("Invalid Hospital Code. No such hospital found.");
+                continue;
+            }
+
+            if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+                System.out.println("Hospital is " + h.getStatus() + ". Login denied.");
+                return;
+            }
+
+            break;
         }
 
         System.out.print("Username: ");
         String username = sc.next();
+
         System.out.print("Password: ");
         String password = sc.next();
 
-        Doctor d = authService.doctorLogin(code, username, password);
+        Doctor d = authService.doctorLogin(h.getHospitalCode(), username, password);
+
         if (d != null) {
             new DoctorMenu(sc, navStack, d).show();
         }
     }
 
     private void labTechLoginFlow() {
-        System.out.print("Hospital Code: ");
-        String code = sc.next();
 
-        Hospital h = hospitalDAO.getHospitalByCode(code);
-        if (h == null) {
-            System.out.println("Invalid Hospital Code. No such hospital found.");
-            return;
-        }
-        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
-            System.out.println("Your hospital is " + h.getStatus() + ".");
-            return;
+        Hospital h;
+
+        while (true) {
+            System.out.print("Hospital Code: ");
+            String code = sc.next();
+
+            h = hospitalDAO.getHospitalByCode(code);
+
+            if (h == null) {
+                System.out.println("Invalid Hospital Code. No such hospital found.");
+                continue;
+            }
+
+            if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+                System.out.println("Hospital is " + h.getStatus() + ". Login denied.");
+                return;
+            }
+
+            break;
         }
 
         System.out.print("Username: ");
         String username = sc.next();
+
         System.out.print("Password: ");
         String password = sc.next();
 
-        LabTechnician lt = authService.labTechnicianLogin(code, username, password);
+        LabTechnician lt = authService.labTechnicianLogin(h.getHospitalCode(), username, password);
+
         if (lt != null) {
             new LabTechnicianMenu(sc, navStack, lt).show();
         }
     }
 
     private void patientLoginFlow() {
-        System.out.print("Hospital Code: ");
-        String code = sc.next();
 
-        Hospital h = hospitalDAO.getHospitalByCode(code);
-        if (h == null) {
-            System.out.println("Invalid Hospital Code. No such hospital found.");
-            return;
-        }
-        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
-            System.out.println("Your hospital is " + h.getStatus() + ".");
-            return;
+        Hospital h;
+
+        while (true) {
+            System.out.print("Hospital Code: ");
+            String code = sc.next();
+
+            h = hospitalDAO.getHospitalByCode(code);
+
+            if (h == null) {
+                System.out.println("Invalid Hospital Code. No such hospital found.");
+                continue;
+            }
+
+            if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+                System.out.println("Hospital is " + h.getStatus() + ". Login denied.");
+                return;
+            }
+
+            break;
         }
 
         System.out.print("Username: ");
         String username = sc.next();
+
         System.out.print("Password: ");
         String password = sc.next();
 
-        Patient p = authService.patientLogin(code, username, password);
+        Patient p = authService.patientLogin(h.getHospitalCode(), username, password);
+
         if (p != null) {
             new PatientMenu(sc, navStack, p).show();
         }

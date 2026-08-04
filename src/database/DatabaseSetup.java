@@ -110,7 +110,6 @@ public class DatabaseSetup {
                     "City VARCHAR(50), " +
                     "State VARCHAR(50), " +
                     "Pincode VARCHAR(10), " +
-                    "FilePath VARCHAR(255), " +
                     "HospitalID INT, " +
                     "CONSTRAINT pk_patient PRIMARY KEY (PatientID), " +
                     "CONSTRAINT fk_patient_hospital FOREIGN KEY (HospitalID) REFERENCES Hospital(HospitalID)" +
@@ -180,7 +179,6 @@ public class DatabaseSetup {
                     "CONSTRAINT fk_testrequest_equipment FOREIGN KEY (EquipmentID) REFERENCES Equipment(EquipmentID)" +
                     ")");
 
-            // 11. Report
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS Report (" +
                     "ReportID INT AUTO_INCREMENT, " +
                     "ResultValue DOUBLE, " +
