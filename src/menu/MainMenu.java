@@ -67,8 +67,12 @@ public class MainMenu {
         Hospital h;
 
         while (true) {
-            System.out.print("Hospital Code: ");
+            System.out.print("Hospital Code (0 to Cancel): ");
             String code = sc.next();
+
+            if (code.equals("0")) {
+                return;
+            }
 
             h = hospitalDAO.getHospitalByCode(code);
 
@@ -103,8 +107,12 @@ public class MainMenu {
         Hospital h;
 
         while (true) {
-            System.out.print("Hospital Code: ");
+            System.out.print("Hospital Code (0 to Cancel): ");
             String code = sc.next();
+
+            if (code.equals("0")) {
+                return;
+            }
 
             h = hospitalDAO.getHospitalByCode(code);
 
@@ -139,8 +147,12 @@ public class MainMenu {
         Hospital h;
 
         while (true) {
-            System.out.print("Hospital Code: ");
+            System.out.print("Hospital Code (0 to Cancel): ");
             String code = sc.next();
+
+            if (code.equals("0")) {
+                return;
+            }
 
             h = hospitalDAO.getHospitalByCode(code);
 
@@ -175,8 +187,12 @@ public class MainMenu {
         Hospital h;
 
         while (true) {
-            System.out.print("Hospital Code: ");
+            System.out.print("Hospital Code (0 to Cancel): ");
             String code = sc.next();
+
+            if (code.equals("0")) {
+                return;
+            }
 
             h = hospitalDAO.getHospitalByCode(code);
 
