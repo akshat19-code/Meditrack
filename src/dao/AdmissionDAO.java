@@ -151,6 +151,25 @@ public class AdmissionDAO {
         return summaries;
     }
 
+    public boolean reassignAdminForAdmissions(int oldAdminId, int newAdminId) {
+        String query = "UPDATE Admission SET AdminID = ? WHERE AdminID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, newAdminId);
+            pstmt.setInt(2, oldAdminId);
+
+            pstmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            System.out.println("Error reassigning Admissions: " + e.getMessage());
+            return false;
+        }
+    }
+
     private Admission buildAdmissionFromResultSet(ResultSet rs) throws SQLException {
         Admission ad = new Admission();
         ad.setAdmissionID(rs.getInt("AdmissionID"));

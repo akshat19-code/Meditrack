@@ -13,6 +13,7 @@ public class MainMenu {
     private Scanner sc;
     private MenuStack navStack;
     private AuthService authService = new AuthService();
+    private HospitalDAO hospitalDAO = new HospitalDAO();
 
     public MainMenu(Scanner sc, MenuStack navStack) {
         this.sc = sc;
@@ -64,6 +65,17 @@ public class MainMenu {
     private void adminLoginFlow() {
         System.out.print("Hospital Code: ");
         String code = sc.next();
+
+        Hospital h = hospitalDAO.getHospitalByCode(code);
+        if (h == null) {
+            System.out.println("Invalid Hospital Code. No such hospital found.");
+            return;
+        }
+        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+            System.out.println("Your hospital is " + h.getStatus() + ".");
+            return;
+        }
+
         System.out.print("Username: ");
         String username = sc.next();
         System.out.print("Password: ");
@@ -78,6 +90,17 @@ public class MainMenu {
     private void doctorLoginFlow() {
         System.out.print("Hospital Code: ");
         String code = sc.next();
+
+        Hospital h = hospitalDAO.getHospitalByCode(code);
+        if (h == null) {
+            System.out.println("Invalid Hospital Code. No such hospital found.");
+            return;
+        }
+        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+            System.out.println("Your hospital is " + h.getStatus() + ".");
+            return;
+        }
+
         System.out.print("Username: ");
         String username = sc.next();
         System.out.print("Password: ");
@@ -92,6 +115,17 @@ public class MainMenu {
     private void labTechLoginFlow() {
         System.out.print("Hospital Code: ");
         String code = sc.next();
+
+        Hospital h = hospitalDAO.getHospitalByCode(code);
+        if (h == null) {
+            System.out.println("Invalid Hospital Code. No such hospital found.");
+            return;
+        }
+        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+            System.out.println("Your hospital is " + h.getStatus() + ".");
+            return;
+        }
+
         System.out.print("Username: ");
         String username = sc.next();
         System.out.print("Password: ");
@@ -106,6 +140,17 @@ public class MainMenu {
     private void patientLoginFlow() {
         System.out.print("Hospital Code: ");
         String code = sc.next();
+
+        Hospital h = hospitalDAO.getHospitalByCode(code);
+        if (h == null) {
+            System.out.println("Invalid Hospital Code. No such hospital found.");
+            return;
+        }
+        if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
+            System.out.println("Your hospital is " + h.getStatus() + ".");
+            return;
+        }
+
         System.out.print("Username: ");
         String username = sc.next();
         System.out.print("Password: ");

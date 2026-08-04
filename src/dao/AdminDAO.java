@@ -114,11 +114,51 @@ public class AdminDAO {
         return null;
     }
 
+    public List<Admin> getAllAdminsByHospital(int hospitalId) {
+        List<Admin> adminList = new ArrayList<>();
+        String query = "SELECT * FROM Admin WHERE HospitalID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                adminList.add(buildAdminFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Admins: " + e.getMessage());
+        }
+        return adminList;
+    }
+
+    public boolean deleteAdmin(int adminId) {
+        String query = "DELETE FROM Admin WHERE AdminID = ?";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, adminId);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error deleting Admin: " + e.getMessage());
+            return false;
+        }
+    }
+
     private Admin buildAdminFromResultSet(ResultSet rs) throws SQLException {
         Admin a = new Admin();
         a.setAdminID(rs.getInt("AdminID"));
         a.setFirstName(rs.getString("FirstName"));
         a.setLastName(rs.getString("LastName"));
+        a.setName(rs.getString("Name"));
         a.setUsername(rs.getString("Username"));
         a.setPassword(rs.getString("Password"));
         a.setEmail(rs.getString("Email"));

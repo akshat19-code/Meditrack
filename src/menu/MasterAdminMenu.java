@@ -15,6 +15,7 @@ public class MasterAdminMenu {
     private HospitalDAO hospitalDAO = new HospitalDAO();
     private MasterAdminDAO masterAdminDAO = new MasterAdminDAO();
     private AdminDAO adminDAO = new AdminDAO();
+    private AdmissionDAO admissionDAO = new AdmissionDAO();
     private FileManager fileManager = new FileManager();
 
     public MasterAdminMenu(Scanner sc, MenuStack navStack, MasterAdmin ma) {
@@ -36,7 +37,7 @@ public class MasterAdminMenu {
             System.out.println("4. View Combined Login Log (All Hospitals)");
             System.out.println("5. View Login Log For One Hospital");
             System.out.println("6. Change Password");
-            System.out.println("7. Add Hospital Admin");
+            System.out.println("7. Manage Hospital Admin");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -48,7 +49,7 @@ public class MasterAdminMenu {
                 case 4 -> viewCombinedLoginLog();
                 case 5 -> viewLoginLogForOneHospital();
                 case 6 -> changePassword();
-                case 7 -> addHospitalAdmin();
+                case 7 -> manageHospitalAdmin();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -168,6 +169,15 @@ public class MasterAdminMenu {
                 new String[]{"ACTIVE", "SUSPENDED", "REMOVED"});
 
         sc.nextLine();
+
+        System.out.print("Enter your Master Admin Password to confirm: ");
+        String password = sc.nextLine();
+
+        if (!loggedInMasterAdmin.getPassword().equals(password)) {
+            System.out.println("Incorrect password. Status change cancelled.");
+            navStack.pop();
+            return;
+        }
 
         if (h.getStatus().equalsIgnoreCase(status)) {
             System.out.println("Hospital is already " + status + ". Status unchanged.");
@@ -336,6 +346,156 @@ public class MasterAdminMenu {
         System.out.println(success ? "Hospital Admin added successfully!" : "Failed to add Hospital Admin.");
     }
 
+    private void manageHospitalAdmin() {
+        navStack.push("ManageHospitalAdmin");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
+        if (hospitals.isEmpty()) {
+            System.out.println("No hospitals registered yet.");
+            navStack.pop();
+            return;
+        }
+
+        printHospitalTable(hospitals);
+
+        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
+        sc.nextLine();
+
+        Hospital h = hospitalDAO.getHospitalById(hospitalId);
+        if (h == null) {
+            System.out.println("Hospital not found.");
+            navStack.pop();
+            return;
+        }
+
+        boolean flag = true;
+        while (flag) {
+            System.out.println("\nPath: " + navStack.getPath());
+            System.out.println("---- Manage Hospital Admin (" + h.getHospitalName() + ") ----");
+            System.out.println("1. View Hospital Admins");
+            System.out.println("2. Add Hospital Admin");
+            System.out.println("3. Remove Hospital Admin");
+            System.out.println("0. Back");
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
+
+            switch (choice) {
+                case 1 -> viewHospitalAdmins(hospitalId);
+                case 2 -> createAdminForHospital(hospitalId);
+                case 3 -> removeHospitalAdmin(hospitalId);
+                case 0 -> flag = false;
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+
+        navStack.pop();
+    }
+
+    private void viewHospitalAdmins(int hospitalId) {
+        List<Admin> admins = adminDAO.getAllAdminsByHospital(hospitalId);
+        if (admins.isEmpty()) {
+            System.out.println("No admins found for this hospital.");
+        } else {
+            printAdminTable(admins);
+        }
+    }
+
+    private void removeHospitalAdmin(int hospitalId) {
+        List<Admin> admins = adminDAO.getAllAdminsByHospital(hospitalId);
+        if (admins.isEmpty()) {
+            System.out.println("No admins found for this hospital.");
+            return;
+        }
+
+        printAdminTable(admins);
+
+        int adminId = InputValidator.readInt(sc, "Enter Admin ID to remove: ");
+        sc.nextLine();
+
+        Admin toRemove = null;
+        List<Admin> otherAdmins = new ArrayList<>();
+        for (Admin a : admins) {
+            if (a.getAdminID() == adminId) {
+                toRemove = a;
+            } else {
+                otherAdmins.add(a);
+            }
+        }
+
+        if (toRemove == null) {
+            System.out.println("Admin not found in this hospital.");
+            return;
+        }
+
+        System.out.print("Enter your Master Admin Password to confirm: ");
+        String password = sc.nextLine();
+
+        if (!loggedInMasterAdmin.getPassword().equals(password)) {
+            System.out.println("Incorrect password. Removal cancelled.");
+            return;
+        }
+
+        System.out.print("Are you sure you want to remove Admin '" + toRemove.getName() + "'? (Y/N): ");
+        String confirm = sc.nextLine();
+
+        if (!confirm.equalsIgnoreCase("Y")) {
+            System.out.println("Removal cancelled.");
+            return;
+        }
+
+        if (!otherAdmins.isEmpty()) {
+            System.out.println("Transfer existing admissions to another admin before removal:");
+            printAdminTable(otherAdmins);
+
+            int newAdminId = InputValidator.readInt(sc, "Enter Admin ID to transfer admissions to: ");
+            sc.nextLine();
+
+            boolean validTarget = false;
+            for (Admin a : otherAdmins) {
+                if (a.getAdminID() == newAdminId) {
+                    validTarget = true;
+                    break;
+                }
+            }
+
+            if (!validTarget) {
+                System.out.println("Invalid Admin ID selected. Removal cancelled.");
+                return;
+            }
+
+            boolean reassigned = admissionDAO.reassignAdminForAdmissions(adminId, newAdminId);
+            if (!reassigned) {
+                System.out.println("Failed to transfer admissions. Removal cancelled.");
+                return;
+            }
+            System.out.println("Admissions transferred successfully.");
+        }
+
+        boolean deleted = adminDAO.deleteAdmin(adminId);
+        if (deleted) {
+            System.out.println("Admin removed successfully!");
+        } else {
+            System.out.println("Failed to remove admin. They may still have associated records.");
+        }
+    }
+
+    private void printAdminTable(List<Admin> admins) {
+        System.out.println("-".repeat(85));
+        System.out.printf("%-5s %-25s %-20s %-15s%n",
+                "ID", "Name", "Username", "Phone");
+        System.out.println("-".repeat(85));
+
+        for (Admin a : admins) {
+            System.out.printf("%-5d %-25s %-20s %-15s%n",
+                    a.getAdminID(),
+                    a.getName(),
+                    a.getUsername(),
+                    a.getPhoneNo());
+        }
+
+        System.out.println("-".repeat(85));
+    }
+
     private void printHospitalTable(List<Hospital> hospitals){
         System.out.println("-".repeat(85));
         System.out.printf("%-5s %-8s %-35s %-15s %-10s%n",
@@ -358,9 +518,6 @@ public class MasterAdminMenu {
         System.out.println("-".repeat(85));
     }
 
-    // Parses and displays a raw login log (as written by FileManager) in a
-    // formatted table. Purely a display-layer transformation - does not
-    // change how logs are written or stored.
     private void printLoginLogTable(String log) {
         if (log == null || log.isBlank()) {
             System.out.println("No login records found.");
@@ -400,9 +557,6 @@ public class MasterAdminMenu {
         System.out.println("-".repeat(97));
     }
 
-    // Expects lines of the form:
-    // [2026-08-03 21:39:21] SUCCESS | Role: MASTER_ADMIN | Username: arvind.admin | Hospital Code: N/A
-    // Returns { timestamp, status, role, username, hospitalCode }, or null if the line doesn't match.
     private String[] parseLoginLogLine(String line) {
         try {
             if (!line.startsWith("[")) {

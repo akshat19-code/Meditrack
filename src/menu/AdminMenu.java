@@ -217,8 +217,8 @@ public class AdminMenu {
         sc.nextLine();
 
         String bloodGroup = InputValidator.readMenuChoice(sc, "Blood Group:",
-                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"},
-                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"});
+                new String[]{"Unknown", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"},
+                new String[]{"UNK", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"});
         sc.nextLine();
 
         String street = InputValidator.readAddressString(sc, "Street: ");
@@ -280,8 +280,42 @@ public class AdminMenu {
             newPatient = patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID());
         }
 
+        // ---- Department selection before doctor assignment ----
+        List<Doctor> hospitalDoctors = doctorDAO.getAllDoctorsByHospital(loggedInAdmin.getHospitalID());
+        List<String> departments = new ArrayList<>();
+        for (Doctor d : hospitalDoctors) {
+            if (!departments.contains(d.getDepartment())) {
+                departments.add(d.getDepartment());
+            }
+        }
+
+        if (departments.isEmpty()) {
+            System.out.println("No departments available in this hospital. Admission cancelled.");
+            navStack.pop();
+            return;
+        }
+
+        System.out.println("-".repeat(40));
+        System.out.printf("%-5s %-30s%n", "No.", "Department");
+        System.out.println("-".repeat(40));
+        for (int i = 0; i < departments.size(); i++) {
+            System.out.printf("%-5d %-30s%n", (i + 1), departments.get(i));
+        }
+        System.out.println("-".repeat(40));
+
+        int deptChoice = InputValidator.readInt(sc, "Select Department: ");
+        sc.nextLine();
+
+        if (deptChoice < 1 || deptChoice > departments.size()) {
+            System.out.println("Invalid department selection. Admission cancelled.");
+            navStack.pop();
+            return;
+        }
+
+        String selectedDepartment = departments.get(deptChoice - 1);
+
         Doctor assignedDoctor = workloadManager.assignDoctor(
-                fullName, dob, loggedInAdmin.getHospitalID());
+                fullName, dob, loggedInAdmin.getHospitalID(), selectedDepartment);
 
         if (assignedDoctor == null) {
             System.out.println("No doctor available to assign. Admission cancelled.");
@@ -342,6 +376,7 @@ public class AdminMenu {
         boolean admissionAdded = admissionDAO.insertAdmission(ad);
         if (admissionAdded) {
             System.out.println("Admission created successfully! Assigned Doctor: " + assignedDoctor.getName());
+            System.out.println("Room " + roomNumber + " assigned to " + newPatient.getName());
             fileManager.addAdmissionHistoryEntry(newPatient.getPatientID(), assignedDoctor.getName(),
                     roomNumber, roomType, admissionDate);
         } else {
@@ -588,8 +623,6 @@ public class AdminMenu {
         navStack.pop();
     }
 
-    // ==================== Private Table / Display Helpers ====================
-
     private void printDoctorTable(List<Doctor> doctors) {
         System.out.println("-".repeat(95));
         System.out.printf("%-5s %-25s %-18s %-18s %-10s %-10s%n",
@@ -725,8 +758,6 @@ public class AdminMenu {
 
         System.out.println("-".repeat(30));
     }
-
-    // ==================== Private Data Helpers (composition only, no DAO changes) ====================
 
     private List<Admission> getActiveAdmissionsForHospital() {
         List<Admission> result = new ArrayList<>();
