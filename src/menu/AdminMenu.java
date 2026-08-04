@@ -20,6 +20,7 @@ public class AdminMenu {
     private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private TestTypeDAO testTypeDAO = new TestTypeDAO();
     private HospitalDAO hospitalDAO = new HospitalDAO();
+    private TestRequestDAO testRequestDAO = new TestRequestDAO();
     private AdminDAO adminDAO = new AdminDAO();
     private WorkloadManager workloadManager = new WorkloadManager();
     private BillingService billingService = new BillingService();
@@ -63,6 +64,7 @@ public class AdminMenu {
             System.out.println("10. View Login Log");
             System.out.println("11. View Patients");
             System.out.println("12. Change Password");
+            System.out.println("13. View Dashboard");
             System.out.println("0. Back");
             System.out.println("99. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -80,6 +82,7 @@ public class AdminMenu {
                 case 10 -> viewLoginLog();
                 case 11 -> viewPatients();
                 case 12 -> changePassword();
+                case 13 -> viewDashboard();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -91,6 +94,41 @@ public class AdminMenu {
                 default -> System.out.println("Invalid choice.");
             }
         }
+    }
+
+    private void viewDashboard() {
+        navStack.push("ViewDashboard");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        int hospitalId = loggedInAdmin.getHospitalID();
+
+        int totalDoctors = doctorDAO.getAllDoctorsByHospital(hospitalId).size();
+        int totalLabTechs = labTechDAO.getAllLabTechniciansByHospital(hospitalId).size();
+        int totalPatients = patientDAO.getAllPatientsByHospital(hospitalId).size();
+        int activeAdmissions = getActiveAdmissionsForHospital().size();
+        int totalEquipment = equipmentDAO.getAllEquipmentByHospital(hospitalId).size();
+        int totalTestTypes = testTypeDAO.getAllTestTypesByHospital(hospitalId).size();
+        int pendingRequests = testRequestDAO.getPendingTestRequests(hospitalId).size();
+        int processingRequests = testRequestDAO.getRequestsByStatusForHospital(hospitalId, "PROCESSING").size();
+        int completedRequests = testRequestDAO.getRequestsByStatusForHospital(hospitalId, "COMPLETED").size();
+
+        System.out.println("=".repeat(50));
+        System.out.println("            HOSPITAL DASHBOARD");
+        System.out.println("=".repeat(50));
+        System.out.printf("%-35s%15s%n", "Category", "Count");
+        System.out.println("-".repeat(50));
+        System.out.printf("%-35s%15d%n", "Doctors", totalDoctors);
+        System.out.printf("%-35s%15d%n", "Lab Technicians", totalLabTechs);
+        System.out.printf("%-35s%15d%n", "Patients", totalPatients);
+        System.out.printf("%-35s%15d%n", "Active Admissions", activeAdmissions);
+        System.out.printf("%-35s%15d%n", "Equipment", totalEquipment);
+        System.out.printf("%-35s%15d%n", "Test Types", totalTestTypes);
+        System.out.printf("%-35s%15d%n", "Pending Requests", pendingRequests);
+        System.out.printf("%-35s%15d%n", "Processing Requests", processingRequests);
+        System.out.printf("%-35s%15d%n", "Completed Requests", completedRequests);
+        System.out.println("-".repeat(50));
+
+        navStack.pop();
     }
 
     private void addDoctor() {

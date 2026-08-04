@@ -38,6 +38,7 @@ public class MasterAdminMenu {
             System.out.println("5. View Login Log For One Hospital");
             System.out.println("6. Change Password");
             System.out.println("7. Manage Hospital Admin");
+            System.out.println("8. View Dashboard");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -50,6 +51,7 @@ public class MasterAdminMenu {
                 case 5 -> viewLoginLogForOneHospital();
                 case 6 -> changePassword();
                 case 7 -> manageHospitalAdmin();
+                case 8 -> viewDashboard();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -61,6 +63,43 @@ public class MasterAdminMenu {
                 default -> System.out.println("Invalid choice.");
             }
         }
+    }
+
+    private void viewDashboard() {
+        navStack.push("ViewDashboard");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
+
+        int totalHospitals = hospitals.size();
+        int totalActive = 0;
+        int totalRemoved = 0;
+
+        for (Hospital h : hospitals) {
+            if (h.getStatus().equalsIgnoreCase("ACTIVE")) {
+                totalActive++;
+            } else if (h.getStatus().equalsIgnoreCase("REMOVED")) {
+                totalRemoved++;
+            }
+        }
+
+        int totalAdmins = 0;
+        for (Hospital h : hospitals) {
+            totalAdmins += adminDAO.getAllAdminsByHospital(h.getHospitalID()).size();
+        }
+
+        System.out.println("=".repeat(50));
+        System.out.println("          MASTER ADMIN DASHBOARD");
+        System.out.println("=".repeat(50));
+        System.out.printf("%-35s%15s%n", "Category", "Count");
+        System.out.println("-".repeat(50));
+        System.out.printf("%-35s%15d%n", "Total Hospitals", totalHospitals);
+        System.out.printf("%-35s%15d%n", "Active Hospitals", totalActive);
+        System.out.printf("%-35s%15d%n", "Removed Hospitals", totalRemoved);
+        System.out.printf("%-35s%15d%n", "Managed Admins", totalAdmins);
+        System.out.println("-".repeat(50));
+
+        navStack.pop();
     }
 
     private void registerHospital() {
