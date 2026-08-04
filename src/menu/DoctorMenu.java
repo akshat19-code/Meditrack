@@ -182,9 +182,7 @@ public class DoctorMenu {
         }
 
         System.out.println(r);
-        System.out.print("Enter Diagnosis Notes: ");
-        String notes = sc.nextLine();
-
+        String notes = InputValidator.readNonEmptyString(sc, "Enter Diagnosis Notes: ");
         boolean success = reportDAO.updateDoctorNotes(reportId, notes);
 
         if (success) {
@@ -198,7 +196,6 @@ public class DoctorMenu {
         navStack.pop();
     }
 
-    // Same pattern as Master Admin / Hospital Admin's Change Password.
     private void changePassword() {
         navStack.push("ChangePassword");
         System.out.println("\nPath: " + navStack.getPath());
@@ -275,10 +272,10 @@ public class DoctorMenu {
     }
 
     private void printReportSummaryTable(List<Report> reports) {
-        System.out.println("-".repeat(100));
-        System.out.printf("%-6s %-22s %-22s %-12s %-12s%n",
-                "RepID", "Patient", "Test", "Status", "Date");
-        System.out.println("-".repeat(100));
+        System.out.println("-".repeat(110));
+        System.out.printf("%-6s %-22s %-22s %-12s %-12s %-9s%n",
+                "RepID", "Patient", "Test", "Status", "Date", "Reviewed");
+        System.out.println("-".repeat(110));
 
         for (Report r : reports) {
             String patientName = "Unknown";
@@ -299,14 +296,22 @@ public class DoctorMenu {
                 }
             }
 
-            System.out.printf("%-6d %-22s %-22s %-12s %-12s%n",
+            String reviewed = isReportReviewed(r) ? "YES" : "NO";
+
+            System.out.printf("%-6d %-22s %-22s %-12s %-12s %-9s%n",
                     r.getReportID(),
                     patientName,
                     testName,
                     r.getResultStatus(),
-                    r.getAnalysisDate());
+                    r.getAnalysisDate(),
+                    reviewed);
         }
 
-        System.out.println("-".repeat(100));
+        System.out.println("-".repeat(110));
+    }
+
+    private boolean isReportReviewed(Report r) {
+        String notes = r.getDoctorNotes();
+        return notes != null && !notes.isBlank();
     }
 }
