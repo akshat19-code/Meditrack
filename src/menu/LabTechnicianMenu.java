@@ -137,7 +137,7 @@ public class LabTechnicianMenu {
         System.out.print("Enter Current Password: ");
         String currentPassword = sc.nextLine();
 
-        if (!loggedInLabTech.getPassword().equals(currentPassword)) {
+        if (!loggedInLabTech.getPassword().equals(PasswordUtil.hashPassword(currentPassword))) {
             System.out.println("Incorrect current password.");
             navStack.pop();
             return;
@@ -152,9 +152,10 @@ public class LabTechnicianMenu {
             return;
         }
 
-        boolean success = labTechDAO.updatePassword(loggedInLabTech.getLabTechID(), newPassword);
+        String hashedNewPassword = PasswordUtil.hashPassword(newPassword);
+        boolean success = labTechDAO.updatePassword(loggedInLabTech.getLabTechID(), hashedNewPassword);
         if (success) {
-            loggedInLabTech.setPassword(newPassword);
+            loggedInLabTech.setPassword(hashedNewPassword);
             System.out.println("Password changed successfully!");
         } else {
             System.out.println("Failed to change password.");
@@ -163,9 +164,6 @@ public class LabTechnicianMenu {
         navStack.pop();
     }
 
-    // ==================== Private Display Helpers ====================
-
-    // details = { testRequestId, patientName, testName, priority }
     private void printRequestDetails(String[] details) {
         System.out.println("-".repeat(70));
         System.out.printf("%-15s %-20s %-20s %-10s%n",

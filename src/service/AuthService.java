@@ -2,6 +2,7 @@ package service;
 
 import dao.*;
 import model.*;
+import util.*;
 
 public class AuthService {
 
@@ -22,7 +23,7 @@ public class AuthService {
             fileManager.logLoginAttempt("MASTER_ADMIN", null, username, false);
             return null;
         }
-        if (!ma.getPassword().equals(password)) {
+        if (!ma.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password.");
             fileManager.logLoginAttempt("MASTER_ADMIN", null, username, false);
             return null;
@@ -59,7 +60,7 @@ public class AuthService {
             fileManager.logLoginAttempt("ADMIN", hospitalCode, username, false);
             return null;
         }
-        if (!a.getPassword().equals(password)) {
+        if (!a.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password.");
             fileManager.logLoginAttempt("ADMIN", hospitalCode, username, false);
             return null;
@@ -82,7 +83,7 @@ public class AuthService {
             fileManager.logLoginAttempt("DOCTOR", hospitalCode, username, false);
             return null;
         }
-        if (!d.getPassword().equals(password)) {
+        if (!d.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password.");
             fileManager.logLoginAttempt("DOCTOR", hospitalCode, username, false);
             return null;
@@ -105,7 +106,7 @@ public class AuthService {
             fileManager.logLoginAttempt("LAB_TECHNICIAN", hospitalCode, username, false);
             return null;
         }
-        if (!lt.getPassword().equals(password)) {
+        if (!lt.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password.");
             fileManager.logLoginAttempt("LAB_TECHNICIAN", hospitalCode, username, false);
             return null;
@@ -128,7 +129,7 @@ public class AuthService {
             fileManager.logLoginAttempt("PATIENT", hospitalCode, username, false);
             return null;
         }
-        if (!p.getPassword().equals(password)) {
+        if (!p.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password.");
             fileManager.logLoginAttempt("PATIENT", hospitalCode, username, false);
             return null;

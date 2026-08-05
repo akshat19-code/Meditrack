@@ -142,9 +142,6 @@ public class DoctorDAO {
         return d;
     }
 
-    // Phone number is now checked GLOBALLY (no HospitalID filter) - a phone
-    // number is a real-world unique identifier and should not be allowed to
-    // repeat across different hospitals in the system.
     public Doctor getDoctorByPhone(String phone) {
         String query = "SELECT * FROM Doctor WHERE PhoneNo = ?";
 

@@ -150,7 +150,7 @@ public class PatientMenu {
         System.out.print("Enter Current Password: ");
         String currentPassword = sc.nextLine();
 
-        if (!loggedInPatient.getPassword().equals(currentPassword)) {
+        if (!loggedInPatient.getPassword().equals(PasswordUtil.hashPassword(currentPassword))) {
             System.out.println("Incorrect current password.");
             navStack.pop();
             return;
@@ -165,9 +165,10 @@ public class PatientMenu {
             return;
         }
 
-        boolean success = patientDAO.updatePassword(loggedInPatient.getPatientID(), newPassword);
+        String hashedNewPassword = PasswordUtil.hashPassword(newPassword);
+        boolean success = patientDAO.updatePassword(loggedInPatient.getPatientID(), hashedNewPassword);
         if (success) {
-            loggedInPatient.setPassword(newPassword);
+            loggedInPatient.setPassword(hashedNewPassword);
             System.out.println("Password changed successfully!");
         } else {
             System.out.println("Failed to change password.");
@@ -176,7 +177,6 @@ public class PatientMenu {
         navStack.pop();
     }
 
-    // ==================== Private Display Helpers ====================
 
     private void printPatientDetails(Patient p, int age) {
         System.out.println("-".repeat(60));

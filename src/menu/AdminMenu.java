@@ -172,7 +172,7 @@ public class AdminMenu {
         d.setFirstName(firstName);
         d.setLastName(lastName);
         d.setUsername(username);
-        d.setPassword(password);
+        d.setPassword(PasswordUtil.hashPassword(password));
         d.setEmail(email);
         d.setPhoneNo(phone);
         d.setSpecialization(specialization);
@@ -224,7 +224,7 @@ public class AdminMenu {
         lt.setFirstName(firstName);
         lt.setLastName(lastName);
         lt.setUsername(username);
-        lt.setPassword(password);
+        lt.setPassword(PasswordUtil.hashPassword(password));
         lt.setEmail(email);
         lt.setPhoneNo(phone);
         lt.setQualification(qualification);
@@ -295,7 +295,7 @@ public class AdminMenu {
             p.setFirstName(firstName);
             p.setLastName(lastName);
             p.setUsername(username);
-            p.setPassword(password);
+            p.setPassword(PasswordUtil.hashPassword(password));
             p.setEmail(email);
             p.setPhoneNo(phone);
             p.setDob(dob);
@@ -635,7 +635,7 @@ public class AdminMenu {
         System.out.print("Enter Current Password: ");
         String currentPassword = sc.nextLine();
 
-        if (!loggedInAdmin.getPassword().equals(currentPassword)) {
+        if (!loggedInAdmin.getPassword().equals(PasswordUtil.hashPassword(currentPassword))) {
             System.out.println("Incorrect current password.");
             navStack.pop();
             return;
@@ -650,9 +650,10 @@ public class AdminMenu {
             return;
         }
 
-        boolean success = adminDAO.updatePassword(loggedInAdmin.getAdminID(), newPassword);
+        String hashedNewPassword = PasswordUtil.hashPassword(newPassword);
+        boolean success = adminDAO.updatePassword(loggedInAdmin.getAdminID(), hashedNewPassword);
         if (success) {
-            loggedInAdmin.setPassword(newPassword);
+            loggedInAdmin.setPassword(hashedNewPassword);
             System.out.println("Password changed successfully!");
         } else {
             System.out.println("Failed to change password.");

@@ -291,7 +291,7 @@ public class MasterAdminMenu {
         System.out.print("Enter Current Password: ");
         String currentPassword = sc.nextLine();
 
-        if (!loggedInMasterAdmin.getPassword().equals(currentPassword)) {
+        if (!loggedInMasterAdmin.getPassword().equals(PasswordUtil.hashPassword(currentPassword))) {
             System.out.println("Incorrect current password.");
             navStack.pop();
             return;
@@ -306,9 +306,10 @@ public class MasterAdminMenu {
             return;
         }
 
-        boolean success = masterAdminDAO.updatePassword(loggedInMasterAdmin.getMasterAdminID(), newPassword);
+        String hashedNewPassword = PasswordUtil.hashPassword(newPassword);
+        boolean success = masterAdminDAO.updatePassword(loggedInMasterAdmin.getMasterAdminID(), hashedNewPassword);
         if (success) {
-            loggedInMasterAdmin.setPassword(newPassword);
+            loggedInMasterAdmin.setPassword(hashedNewPassword);
             System.out.println("Password changed successfully!");
         } else {
             System.out.println("Failed to change password.");
@@ -376,7 +377,7 @@ public class MasterAdminMenu {
         a.setFirstName(firstName);
         a.setLastName(lastName);
         a.setUsername(username);
-        a.setPassword(password);
+        a.setPassword(PasswordUtil.hashPassword(password));
         a.setEmail(email);
         a.setPhoneNo(phone);
         a.setHospitalID(hospitalId);
