@@ -25,6 +25,7 @@ public class AdminMenu {
     private WorkloadManager workloadManager = new WorkloadManager();
     private BillingService billingService = new BillingService();
     private FileManager fileManager = new FileManager();
+    private BillDAO billDAO = new BillDAO();
 
     private static final String[] ROOM_TYPE_LABELS = {"General", "Semi Private", "Private", "ICU"};
     private static final String[] ROOM_TYPE_VALUES = {"GENERAL", "SEMI_PRIVATE", "PRIVATE", "ICU"};
@@ -52,42 +53,28 @@ public class AdminMenu {
         while (flag) {
             System.out.println("\nPath: " + navStack.getPath());
             System.out.println("===== Hospital Admin Menu =====");
-            System.out.println("1. Add Doctor");
-            System.out.println("2. Add Lab Technician");
-            System.out.println("3. Register Patient & Create Admission");
-            System.out.println("4. Add Test Type");
-            System.out.println("5. Discharge Patient");
-            System.out.println("6. View Doctors");
-            System.out.println("7. View Lab Technicians");
-            System.out.println("8. View Test Types");
-            System.out.println("9. View Equipment");
-            System.out.println("10. View Login Log");
-            System.out.println("11. View Patients");
-            System.out.println("12. Change Password");
-            System.out.println("13. View Dashboard");
+            System.out.println("1. Add ");
+            System.out.println("2. Register Patient & Generate Admission");
+            System.out.println("3. Discharge Patient");
+            System.out.println("4. View ");
+            System.out.println("5. Change Password");
+            System.out.println("6. Dashboard");
             System.out.println("0. Back");
-            System.out.println("99. Exit Application");
+            System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
 
             switch (choice) {
-                case 1 -> addDoctor();
-                case 2 -> addLabTechnician();
-                case 3 -> registerPatientAndAdmit();
-                case 4 -> addTestType();
-                case 5 -> dischargePatient();
-                case 6 -> viewDoctors();
-                case 7 -> viewLabTechnicians();
-                case 8 -> viewTestTypes();
-                case 9 -> viewEquipment();
-                case 10 -> viewLoginLog();
-                case 11 -> viewPatients();
-                case 12 -> changePassword();
-                case 13 -> viewDashboard();
+                case 1 -> addMenu();
+                case 2 -> registerPatientAndAdmit();
+                case 3 -> dischargePatient();
+                case 4 -> viewMenu();
+                case 5 -> changePassword();
+                case 6 -> dashboard();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
                 }
-                case 99 -> {
+                case 9 -> {
                     System.out.println("Exiting MediTrack. Goodbye!");
                     System.exit(0);
                 }
@@ -96,7 +83,75 @@ public class AdminMenu {
         }
     }
 
-    private void viewDashboard() {
+    private void viewMenu() {
+        navStack.push("ViewMenu");
+        boolean flag = true;
+
+        while (flag) {
+            System.out.println("\nPath: " + navStack.getPath());
+            System.out.println("===== View Menu =====");
+            System.out.println("1. View Doctors");
+            System.out.println("2. View Lab Technicians");
+            System.out.println("3. View Test Types");
+            System.out.println("4. View Equipment");
+            System.out.println("5. View Login Log");
+            System.out.println("6. View Patients");
+            System.out.println("0. Back");
+            System.out.println("9. Exit Application");
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
+
+            switch (choice) {
+                case 1 -> viewDoctors();
+                case 2 -> viewLabTechnicians();
+                case 3 -> viewTestTypes();
+                case 4 -> viewEquipment();
+                case 5 -> viewLoginLog();
+                case 6 -> viewPatients();
+                case 0 -> {
+                    navStack.pop();
+                    flag = false;
+                }
+                case 9 -> {
+                    System.out.println("Exiting MediTrack. Goodbye!");
+                    System.exit(0);
+                }
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+    }
+
+    private void addMenu(){
+        navStack.push("AddMenu");
+        boolean flag = true;
+
+        while (flag) {
+            System.out.println("\nPath: " + navStack.getPath());
+            System.out.println("===== Add Menu =====");
+            System.out.println("1. Add Doctor");
+            System.out.println("2. Add Lab Technician");
+            System.out.println("3. Add Test Type & Equipment");
+            System.out.println("0. Back");
+            System.out.println("9. Exit Application");
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
+
+            switch (choice) {
+                case 1 -> addDoctor();
+                case 2 -> addLabTechnician();
+                case 3 -> addTestType();
+                case 0 -> {
+                    navStack.pop();
+                    flag = false;
+                }
+                case 9 -> {
+                    System.out.println("Exiting MediTrack. Goodbye!");
+                    System.exit(0);
+                }
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+    }
+
+    private void dashboard() {
         navStack.push("ViewDashboard");
         System.out.println("\nPath: " + navStack.getPath());
 
@@ -111,6 +166,10 @@ public class AdminMenu {
         int pendingRequests = testRequestDAO.getPendingTestRequests(hospitalId).size();
         int processingRequests = testRequestDAO.getRequestsByStatusForHospital(hospitalId, "PROCESSING").size();
         int completedRequests = testRequestDAO.getRequestsByStatusForHospital(hospitalId, "COMPLETED").size();
+        double doctorRevenue = billDAO.getDoctorRevenue(hospitalId);
+        double testRevenue = billDAO.getTestRevenue(hospitalId);
+        double roomRevenue = billDAO.getRoomRevenue(hospitalId);
+        double totalRevenue = billDAO.getTotalRevenue(hospitalId);
 
         System.out.println("=".repeat(50));
         System.out.println("            HOSPITAL DASHBOARD");
@@ -126,6 +185,10 @@ public class AdminMenu {
         System.out.printf("%-35s%15d%n", "Pending Requests", pendingRequests);
         System.out.printf("%-35s%15d%n", "Processing Requests", processingRequests);
         System.out.printf("%-35s%15d%n", "Completed Requests", completedRequests);
+        System.out.printf("%-35sRs.%,11.2f%n", "Doctor Fee Revenue", doctorRevenue);
+        System.out.printf("%-35sRs.%,11.2f%n", "Test Revenue", testRevenue);
+        System.out.printf("%-35sRs.%,11.2f%n", "Room Revenue", roomRevenue);
+        System.out.printf("%-35sRs.%,11.2f%n", "Total Revenue", totalRevenue);
         System.out.println("-".repeat(50));
 
         navStack.pop();
@@ -255,8 +318,8 @@ public class AdminMenu {
         sc.nextLine();
 
         String bloodGroup = InputValidator.readMenuChoice(sc, "Blood Group:",
-                new String[]{"Unknown", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"},
-                new String[]{"UNK", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"});
+                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "Unknown"},
+                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "UNK"});
         sc.nextLine();
 
         String street = InputValidator.readAddressString(sc, "Street: ");
@@ -735,15 +798,15 @@ public class AdminMenu {
 
     private void printPatientTable(List<Patient> patients) {
         System.out.println("-".repeat(90));
-        System.out.printf("%-5s %-25s %-12s %-8s %-10s %-15s%n",
-                "ID", "Name", "DOB", "Gender", "Blood Grp", "City");
+        System.out.printf("%-5s %-25s %-5s %-8s %-10s %-15s%n",
+                "ID", "Name", "Age", "Gender", "Blood Grp", "City");
         System.out.println("-".repeat(90));
 
         for (Patient p : patients) {
             System.out.printf("%-5d %-25s %-12s %-8s %-10s %-15s%n",
                     p.getPatientID(),
                     p.getName(),
-                    p.getDob(),
+                    patientDAO.calculateAge(p.getDob()),
                     p.getGender(),
                     p.getBloodGroup(),
                     p.getCity());

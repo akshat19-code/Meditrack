@@ -38,7 +38,7 @@ public class MasterAdminMenu {
             System.out.println("5. View Login Log For One Hospital");
             System.out.println("6. Change Password");
             System.out.println("7. Manage Hospital Admin");
-            System.out.println("8. View Dashboard");
+            System.out.println("8. Dashboard");
             System.out.println("0. Back");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
@@ -51,7 +51,7 @@ public class MasterAdminMenu {
                 case 5 -> viewLoginLogForOneHospital();
                 case 6 -> changePassword();
                 case 7 -> manageHospitalAdmin();
-                case 8 -> viewDashboard();
+                case 8 -> dashboard();
                 case 0 -> {
                     navStack.pop();
                     flag = false;
@@ -65,7 +65,7 @@ public class MasterAdminMenu {
         }
     }
 
-    private void viewDashboard() {
+    private void dashboard() {
         navStack.push("ViewDashboard");
         System.out.println("\nPath: " + navStack.getPath());
 
@@ -537,25 +537,26 @@ public class MasterAdminMenu {
     }
 
     private void printHospitalTable(List<Hospital> hospitals){
-        System.out.println("-".repeat(85));
-        System.out.printf("%-5s %-8s %-35s %-15s %-10s%n",
+        System.out.println("-".repeat(120));
+        System.out.printf("%-5s %-8s %-35s %-45s %-10s%n",
                 "ID",
                 "Code",
                 "Hospital Name",
-                "City",
+                "Address",
                 "Status");
-        System.out.println("-".repeat(85));
+        System.out.println("-".repeat(120));
 
         for (Hospital h : hospitals) {
-            System.out.printf("%-5d %-8s %-35s %-15s %-10s%n",
+            String address = h.getStreet() + ", " +h.getCity() + ", " +h.getState();
+            System.out.printf("%-5d %-8s %-35s %-45s %-10s%n",
                     h.getHospitalID(),
                     h.getHospitalCode(),
                     h.getHospitalName(),
-                    h.getCity(),
+                    address,
                     h.getStatus());
         }
 
-        System.out.println("-".repeat(85));
+        System.out.println("-".repeat(120));
     }
 
     private void printLoginLogTable(String log) {

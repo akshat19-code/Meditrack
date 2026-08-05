@@ -7,28 +7,112 @@ import java.sql.*;
 
 public class BillDAO {
 
-    public boolean insertBill(Bill b) {
-        String query = "INSERT INTO Bill (RoomCharge, DoctorFee, TestCharge, TotalAmount, BillDate, AdmissionID) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+    public  double getDoctorRevenue(int hospitalId) {
+
+        String query = """
+            SELECT SUM(b.DoctorFee) AS Revenue
+            FROM Bill b
+            JOIN Admission a ON b.AdmissionID = a.AdmissionID
+            WHERE a.HospitalID = ?
+            """;
 
         Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
-            pstmt.setDouble(1, b.getRoomCharge());
-            pstmt.setDouble(2, b.getDoctorFee());
-            pstmt.setDouble(3, b.getTestCharge());
-            pstmt.setDouble(4, b.getTotalAmount());
-            pstmt.setString(5, b.getBillDate());
-            pstmt.setInt(6, b.getAdmissionID());
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
 
-            int rows = pstmt.executeUpdate();
-            return rows > 0;
+            if (rs.next()) {
+                return rs.getDouble("Revenue");
+            }
 
         } catch (SQLException e) {
-            System.out.println("Error inserting Bill: " + e.getMessage());
-            return false;
+            System.out.println("Error fetching Doctor Revenue: " + e.getMessage());
         }
+
+        return 0;
+    }
+
+    public double getTestRevenue(int hospitalId) {
+
+        String query = """
+            SELECT SUM(b.TestCharge) AS Revenue
+            FROM Bill b
+            JOIN Admission a ON b.AdmissionID = a.AdmissionID
+            WHERE a.HospitalID = ?
+            """;
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("Revenue");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Test Revenue: " + e.getMessage());
+        }
+
+        return 0;
+    }
+
+    public double getRoomRevenue(int hospitalId) {
+
+        String query = """
+            SELECT SUM(b.RoomCharge) AS Revenue
+            FROM Bill b
+            JOIN Admission a ON b.AdmissionID = a.AdmissionID
+            WHERE a.HospitalID = ?
+            """;
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("Revenue");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Room Revenue: " + e.getMessage());
+        }
+
+        return 0;
+    }
+
+    public double getTotalRevenue(int hospitalId) {
+
+        String query = """
+            SELECT SUM(b.TotalAmount) AS Revenue
+            FROM Bill b
+            JOIN Admission a ON b.AdmissionID = a.AdmissionID
+            WHERE a.HospitalID = ?
+            """;
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("Revenue");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Total Revenue: " + e.getMessage());
+        }
+
+        return 0;
     }
 
     public Bill getBillByAdmissionId(int admissionId) {
