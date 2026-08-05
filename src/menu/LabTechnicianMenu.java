@@ -81,7 +81,26 @@ public class LabTechnicianMenu {
         if (details != null) {
             System.out.println("Now processing:");
             printRequestDetails(details);
-            System.out.println("(remember this Request ID to upload its result next)");
+            System.out.println("(Remember this Request ID to upload its result next)");
+
+            try {
+                System.out.println("\nCollecting Sample...");
+                Thread.sleep(700);
+
+                System.out.println("Processing Test...");
+                for (int i = 0; i < 6; i++) {
+                    Thread.sleep(400);
+                    System.out.print(".");
+                }
+                System.out.println();
+
+                System.out.println("Generating Report...");
+                Thread.sleep(700);
+
+                System.out.println("✔ Report Generated Successfully.\n");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         navStack.pop();

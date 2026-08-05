@@ -348,7 +348,7 @@ public class MasterAdminMenu {
 
     private void createAdminForHospital(int hospitalId) {
         System.out.println("\n---- New Hospital Admin ----");
-
+        sc.nextLine();
         String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
         String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
         String username = InputValidator.readNonEmptyString(sc, "Username: ");

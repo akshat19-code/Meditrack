@@ -197,8 +197,8 @@ public class PatientMenu {
 
     private void printAdmissionBillTable(List<Admission> admissions) {
         System.out.println("-".repeat(112));
-        System.out.printf("%-6s %-20s %-10s %-13s %-11s %-14s %-14s %-12s%n",
-                "AdmID", "Doctor", "Room No.", "Room Type", "Status", "Admitted", "Discharged", "Bill Total");
+        System.out.printf("%-16s %-20s %-10s %-13s %-11s %-14s %-14s %-12s%n",
+                "AdmissionID", "Doctor", "Room No.", "Room Type", "Status", "Admitted", "Discharged", "Bill Total");
         System.out.println("-".repeat(112));
 
         for (Admission ad : admissions) {

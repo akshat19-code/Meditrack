@@ -80,7 +80,13 @@ public class DoctorMenu {
     private void requestTest() {
         navStack.push("RequestTest");
         System.out.println("\nPath: " + navStack.getPath());
+        List<Admission> admissions = admissionDAO.getActiveAdmissionsByDoctor(loggedInDoctor.getDoctorID());
 
+        if (admissions.isEmpty()) {
+            System.out.println("No currently assigned patients.");
+        } else {
+            printAssignedPatientsTable(admissions);
+        }
         int admissionId = InputValidator.readInt(sc, "Enter Admission ID: ");
 
         Admission ad = admissionDAO.getAdmissionById(admissionId);

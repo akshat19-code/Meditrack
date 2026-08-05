@@ -19,7 +19,7 @@ public class DatabaseSetup {
                     "LastName VARCHAR(50), " +
                     "Name VARCHAR(100), " +
                     "Username VARCHAR(50), " +
-                    "Password VARCHAR(50), " +
+                    "Password VARCHAR(64), " +
                     "Email VARCHAR(100), " +
                     "PhoneNo VARCHAR(15), " +
                     "CONSTRAINT pk_masteradmin PRIMARY KEY (MasterAdminID)" +
@@ -49,7 +49,7 @@ public class DatabaseSetup {
                     "LastName VARCHAR(50), " +
                     "Name VARCHAR(100), " +
                     "Username VARCHAR(50), " +
-                    "Password VARCHAR(50), " +
+                    "Password VARCHAR(64), " +
                     "Email VARCHAR(100), " +
                     "PhoneNo VARCHAR(15), " +
                     "HospitalID INT, " +
@@ -64,7 +64,7 @@ public class DatabaseSetup {
                     "LastName VARCHAR(50), " +
                     "Name VARCHAR(100), " +
                     "Username VARCHAR(50), " +
-                    "Password VARCHAR(50), " +
+                    "Password VARCHAR(64), " +
                     "Email VARCHAR(100), " +
                     "PhoneNo VARCHAR(15), " +
                     "Specialization VARCHAR(100), " +
@@ -84,7 +84,7 @@ public class DatabaseSetup {
                     "LastName VARCHAR(50), " +
                     "Name VARCHAR(100), " +
                     "Username VARCHAR(50), " +
-                    "Password VARCHAR(50), " +
+                    "Password VARCHAR(64), " +
                     "Email VARCHAR(100), " +
                     "PhoneNo VARCHAR(15), " +
                     "Qualification VARCHAR(100), " +
@@ -100,7 +100,7 @@ public class DatabaseSetup {
                     "LastName VARCHAR(50), " +
                     "Name VARCHAR(100), " +
                     "Username VARCHAR(50), " +
-                    "Password VARCHAR(50), " +
+                    "Password VARCHAR(64), " +
                     "Email VARCHAR(100), " +
                     "PhoneNo VARCHAR(15), " +
                     "DOB DATE, " +

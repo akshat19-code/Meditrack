@@ -1,14 +1,13 @@
 package util;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 
 public class PasswordUtil {
 
     public static String hashPassword(String plainPassword) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(plainPassword.getBytes());
+            MessageDigest d = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = d.digest(plainPassword.getBytes());
 
             StringBuilder sb = new StringBuilder();
             for (byte b : hashBytes) {
