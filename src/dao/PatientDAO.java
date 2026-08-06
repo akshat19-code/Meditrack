@@ -9,30 +9,31 @@ import java.util.List;
 
 public class PatientDAO {
 
-    public boolean insertPatient(Patient p) {
-        String query = "INSERT INTO Patient (FirstName, LastName, Name, Username, Password, Email, PhoneNo, " +
-                "DOB, Gender, BloodGroup, Street, City, State, Pincode, HospitalID) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    Connection con = DatabaseConnection.getConnection();
 
-        Connection con = DatabaseConnection.getConnection();
+    public boolean insertPatient(Patient p) {
+        String query = "INSERT INTO Patient (PatientCode, FirstName, LastName, Name, Username, Password, Email, PhoneNo, " +
+                "DOB, Gender, BloodGroup, Street, City, State, Pincode, HospitalID) " +
+                "VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
-            pstmt.setString(1, p.getFirstName());
-            pstmt.setString(2, p.getLastName());
-            pstmt.setString(3, p.getFirstName() + " " + p.getLastName());
-            pstmt.setString(4, p.getUsername());
-            pstmt.setString(5, p.getPassword());
-            pstmt.setString(6, p.getEmail());
-            pstmt.setString(7, p.getPhoneNo());
-            pstmt.setString(8, p.getDob());
-            pstmt.setString(9, p.getGender());
-            pstmt.setString(10, p.getBloodGroup());
-            pstmt.setString(11, p.getStreet());
-            pstmt.setString(12, p.getCity());
-            pstmt.setString(13, p.getState());
-            pstmt.setString(14, p.getPincode());
-            pstmt.setInt(15, p.getHospitalID());
+            pstmt.setString(1, p.getPatientCode());
+            pstmt.setString(2, p.getFirstName());
+            pstmt.setString(3, p.getLastName());
+            pstmt.setString(4, p.getFirstName() + " " + p.getLastName());
+            pstmt.setString(5, p.getUsername());
+            pstmt.setString(6, p.getPassword());
+            pstmt.setString(7, p.getEmail());
+            pstmt.setString(8, p.getPhoneNo());
+            pstmt.setString(9, p.getDob());
+            pstmt.setString(10, p.getGender());
+            pstmt.setString(11, p.getBloodGroup());
+            pstmt.setString(12, p.getStreet());
+            pstmt.setString(13, p.getCity());
+            pstmt.setString(14, p.getState());
+            pstmt.setString(15, p.getPincode());
+            pstmt.setInt(16, p.getHospitalID());
 
             int rows = pstmt.executeUpdate();
             return rows > 0;
@@ -43,11 +44,8 @@ public class PatientDAO {
         }
     }
 
-    // Username stays hospital-specific.
     public Patient getPatientByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Username = ? AND HospitalID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -68,8 +66,6 @@ public class PatientDAO {
     public Patient getPatientById(int patientId) {
         String query = "SELECT * FROM Patient WHERE PatientID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, patientId);
@@ -85,13 +81,8 @@ public class PatientDAO {
         return null;
     }
 
-    // Unchanged - this is the "returning patient" match (Name + DOB + Hospital),
-    // a completely different concept from email/phone uniqueness and not part
-    // of this fix.
     public Patient findReturningPatient(String name, String dob, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Name = ? AND DOB = ? AND HospitalID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -114,8 +105,6 @@ public class PatientDAO {
         List<Patient> patientList = new ArrayList<>();
         String query = "SELECT * FROM Patient WHERE HospitalID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, hospitalId);
@@ -131,13 +120,8 @@ public class PatientDAO {
         return patientList;
     }
 
-    // Calculates a Patient's current age from their DOB using the database's
-    // CalculateAge(DOB) function - called wherever age needs to be displayed,
-    // since age is dynamic and should never be stored.
     public int calculateAge(String dob) {
         String query = "{? = call CalculateAge(?)}";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (CallableStatement cstmt = con.prepareCall(query)) {
 
@@ -156,8 +140,6 @@ public class PatientDAO {
     public boolean updatePassword(int patientId, String newPassword) {
         String query = "UPDATE Patient SET Password = ? WHERE PatientID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, newPassword);
@@ -172,11 +154,8 @@ public class PatientDAO {
         }
     }
 
-    // NEW - Phone number checked GLOBALLY across all hospitals.
     public Patient getPatientByPhone(String phone) {
         String query = "SELECT * FROM Patient WHERE PhoneNo = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -193,11 +172,8 @@ public class PatientDAO {
         return null;
     }
 
-    // NEW - Email checked GLOBALLY across all hospitals.
     public Patient getPatientByEmail(String email) {
         String query = "SELECT * FROM Patient WHERE Email = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -214,9 +190,31 @@ public class PatientDAO {
         return null;
     }
 
+    public String generatePatientCode(int hospitalID){
+        String query = "SELECT COUNT(*) FROM Patient WHERE HospitalID = ?";
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalID);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("PAT%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating Patient Code: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     private Patient buildPatientFromResultSet(ResultSet rs) throws SQLException {
         Patient p = new Patient();
         p.setPatientID(rs.getInt("PatientID"));
+        p.setPatientCode(rs.getString("PatientCode"));
         p.setFirstName(rs.getString("FirstName"));
         p.setLastName(rs.getString("LastName"));
         p.setName(rs.getString("Name"));

@@ -3,6 +3,7 @@ package model;
 public class Doctor {
 
     private int doctorID;
+    private String doctorCode;
     private String firstName;
     private String lastName;
     private String name;
@@ -40,6 +41,7 @@ public class Doctor {
     }
 
     public int getDoctorID() { return doctorID; }
+    public String getDoctorCode() {return doctorCode;}
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public String getName() { return name; }
@@ -55,6 +57,7 @@ public class Doctor {
     public int getHospitalID() { return hospitalID; }
 
     public void setDoctorID(int doctorID) { this.doctorID = doctorID; }
+    public void setDoctorCode(String doctorCode) {this.doctorCode = doctorCode;}
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
     public void setName(String name) { this.name = name; }

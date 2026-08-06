@@ -3,6 +3,7 @@ package model;
 public class TestType {
 
     private int testTypeID;
+    private String testTypeCode;
     private String testName;
     private double normalMin;
     private double normalMax;
@@ -27,6 +28,7 @@ public class TestType {
     }
 
     public int getTestTypeID() { return testTypeID; }
+    public String getTestTypeCode() {return testTypeCode;}
     public String getTestName() { return testName; }
     public double getNormalMin() { return normalMin; }
     public double getNormalMax() { return normalMax; }
@@ -36,6 +38,7 @@ public class TestType {
     public int getEquipmentID() { return equipmentID; }
 
     public void setTestTypeID(int testTypeID) { this.testTypeID = testTypeID; }
+    public void setTestTypeCode(String testTypeCode) {this.testTypeCode = testTypeCode;}
     public void setTestName(String testName) { this.testName = testName; }
     public void setNormalMin(double normalMin) { this.normalMin = normalMin; }
     public void setNormalMax(double normalMax) { this.normalMax = normalMax; }

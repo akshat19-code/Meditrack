@@ -8,11 +8,11 @@ import java.sql.*;
 
 public class HospitalDAO {
 
+    Connection con = DatabaseConnection.getConnection();
+
     public boolean insertHospital(Hospital h) {
         String query = "INSERT INTO Hospital (HospitalCode, HospitalName, Street, City, State, " +
                 "Pincode, PhoneNo, Email, Status, MasterAdminID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -39,8 +39,6 @@ public class HospitalDAO {
     public String generateHospitalCode() {
         String query = "SELECT MAX(HospitalID) FROM Hospital";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             ResultSet rs = pstmt.executeQuery();
@@ -60,8 +58,6 @@ public class HospitalDAO {
     public Hospital getHospitalByCode(String hospitalCode) {
         String query = "SELECT * FROM Hospital WHERE HospitalCode = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, hospitalCode);
@@ -79,8 +75,6 @@ public class HospitalDAO {
 
     public Hospital getHospitalById(int hospitalId) {
         String query = "SELECT * FROM Hospital WHERE HospitalID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -100,8 +94,6 @@ public class HospitalDAO {
     public boolean updateHospitalStatus(int hospitalId, String newStatus) {
         String query = "UPDATE Hospital SET Status = ? WHERE HospitalID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, newStatus);
@@ -120,8 +112,6 @@ public class HospitalDAO {
         List<Hospital> hospitalList = new ArrayList<>();
         String query = "SELECT * FROM Hospital";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             ResultSet rs = pstmt.executeQuery();
@@ -139,8 +129,6 @@ public class HospitalDAO {
         List<Hospital> hospitalList = new ArrayList<>();
         String query = "SELECT * FROM Hospital WHERE Status IN ('ACTIVE', 'SUSPENDED') ORDER BY HospitalID";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             ResultSet rs = pstmt.executeQuery();
@@ -157,8 +145,6 @@ public class HospitalDAO {
     public List<Hospital> getRemovedHospitals() {
         List<Hospital> hospitalList = new ArrayList<>();
         String query = "SELECT * FROM Hospital WHERE Status = 'REMOVED' ORDER BY HospitalID";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 

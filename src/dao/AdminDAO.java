@@ -8,11 +8,11 @@ import java.util.*;
 
 public class AdminDAO {
 
+    Connection con = DatabaseConnection.getConnection();
+
     public boolean insertAdmin(Admin a) {
         String query = "INSERT INTO Admin (FirstName, LastName, Name, Username, Password, Email, PhoneNo, HospitalID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -37,8 +37,6 @@ public class AdminDAO {
     public Admin getAdminByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Admin WHERE Username = ? AND HospitalID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, username);
@@ -58,8 +56,6 @@ public class AdminDAO {
     public boolean updatePassword(int adminId, String newPassword) {
         String query = "UPDATE Admin SET Password = ? WHERE AdminID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, newPassword);
@@ -76,8 +72,6 @@ public class AdminDAO {
 
     public Admin getAdminByPhone(String phone) {
         String query = "SELECT * FROM Admin WHERE PhoneNo = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -96,8 +90,6 @@ public class AdminDAO {
 
     public Admin getAdminByEmail(String email) {
         String query = "SELECT * FROM Admin WHERE Email = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -118,8 +110,6 @@ public class AdminDAO {
         List<Admin> adminList = new ArrayList<>();
         String query = "SELECT * FROM Admin WHERE HospitalID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, hospitalId);
@@ -137,8 +127,6 @@ public class AdminDAO {
 
     public boolean deleteAdmin(int adminId) {
         String query = "DELETE FROM Admin WHERE AdminID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 

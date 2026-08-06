@@ -9,11 +9,11 @@ import java.util.List;
 
 public class ReportDAO {
 
+    Connection con = DatabaseConnection.getConnection();
+
     public boolean insertReport(Report r) {
         String query = "INSERT INTO Report (ResultValue, ResultStatus, AnalysisDate, DoctorNotes, TestRequestID, LabTechID) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -36,8 +36,6 @@ public class ReportDAO {
     public Report getReportById(int reportId) {
         String query = "SELECT * FROM Report WHERE ReportID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, reportId);
@@ -55,8 +53,6 @@ public class ReportDAO {
 
     public Report getReportByTestRequestId(int testRequestId) {
         String query = "SELECT * FROM Report WHERE TestRequestID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -91,8 +87,6 @@ public class ReportDAO {
 
         String query = "UPDATE Report SET DoctorNotes = ? WHERE ReportID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, combinedNotes);
@@ -115,8 +109,6 @@ public class ReportDAO {
                 "WHERE a.PatientID = ? " +
                 "ORDER BY r.AnalysisDate ASC";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, patientId);
@@ -132,9 +124,6 @@ public class ReportDAO {
         return reportList;
     }
 
-    // NEW - fetches all Reports belonging to the given Doctor's patients,
-    // following the same join pattern as getReportsByPatient. Added to
-    // support showing a Doctor's report list before asking for a Report ID.
     public List<Report> getReportsByDoctor(int doctorId) {
         List<Report> reportList = new ArrayList<>();
         String query = "SELECT r.* FROM Report r " +
@@ -142,8 +131,6 @@ public class ReportDAO {
                 "JOIN Admission a ON tr.AdmissionID = a.AdmissionID " +
                 "WHERE a.DoctorID = ? " +
                 "ORDER BY r.AnalysisDate DESC";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 

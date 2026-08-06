@@ -3,6 +3,7 @@ package model;
 public class Equipment {
 
     private int equipmentID;
+    private String equipmentCode;
     private String equipmentName;
     private String status;
     private String purchaseDate;
@@ -20,12 +21,14 @@ public class Equipment {
     }
 
     public int getEquipmentID() { return equipmentID; }
+    public String getEquipmentCode() {return equipmentCode;}
     public String getEquipmentName() { return equipmentName; }
     public String getStatus() { return status; }
     public String getPurchaseDate() { return purchaseDate; }
     public int getHospitalID() { return hospitalID; }
 
     public void setEquipmentID(int equipmentID) { this.equipmentID = equipmentID; }
+    public void setEquipmentCode(String equipmentCode) {this.equipmentCode = equipmentCode;}
     public void setEquipmentName(String equipmentName) { this.equipmentName = equipmentName; }
     public void setStatus(String status) { this.status = status; }
     public void setPurchaseDate(String purchaseDate) { this.purchaseDate = purchaseDate; }

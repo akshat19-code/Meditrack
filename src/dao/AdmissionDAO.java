@@ -9,24 +9,25 @@ import java.util.List;
 
 public class AdmissionDAO {
 
-    public boolean insertAdmission(Admission ad) {
-        String query = "INSERT INTO Admission (AdmissionDate, DischargeDate, RoomNumber, RoomType, RoomCharge, " +
-                "Status, PatientID, DoctorID, AdminID, HospitalID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    Connection con = DatabaseConnection.getConnection();
 
-        Connection con = DatabaseConnection.getConnection();
+    public boolean insertAdmission(Admission ad) {
+        String query = "INSERT INTO Admission (AdmissionCode, AdmissionDate, DischargeDate, RoomNumber, RoomType, RoomCharge, " +
+                "Status, PatientID, DoctorID, AdminID, HospitalID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
-            pstmt.setString(1, ad.getAdmissionDate());
-            pstmt.setString(2, ad.getDischargeDate());
-            pstmt.setString(3, ad.getRoomNumber());
-            pstmt.setString(4, ad.getRoomType());
-            pstmt.setDouble(5, ad.getRoomCharge());
-            pstmt.setString(6, ad.getStatus());
-            pstmt.setInt(7, ad.getPatientID());
-            pstmt.setInt(8, ad.getDoctorID());
-            pstmt.setInt(9, ad.getAdminID());
-            pstmt.setInt(10, ad.getHospitalID());
+            pstmt.setString(1, ad.getAdmissionCode());
+            pstmt.setString(2, ad.getAdmissionDate());
+            pstmt.setString(3, ad.getDischargeDate());
+            pstmt.setString(4, ad.getRoomNumber());
+            pstmt.setString(5, ad.getRoomType());
+            pstmt.setDouble(6, ad.getRoomCharge());
+            pstmt.setString(7, ad.getStatus());
+            pstmt.setInt(8, ad.getPatientID());
+            pstmt.setInt(9, ad.getDoctorID());
+            pstmt.setInt(10, ad.getAdminID());
+            pstmt.setInt(11, ad.getHospitalID());
 
             int rows = pstmt.executeUpdate();
             return rows > 0;
@@ -39,8 +40,6 @@ public class AdmissionDAO {
 
     public Admission getAdmissionById(int admissionId) {
         String query = "SELECT * FROM Admission WHERE AdmissionID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -61,8 +60,6 @@ public class AdmissionDAO {
         List<Admission> admissionList = new ArrayList<>();
         String query = "SELECT * FROM Admission WHERE DoctorID = ? AND Status = 'ADMITTED'";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, doctorId);
@@ -82,8 +79,6 @@ public class AdmissionDAO {
         List<Admission> admissionList = new ArrayList<>();
         String query = "SELECT * FROM Admission WHERE PatientID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, patientId);
@@ -102,8 +97,6 @@ public class AdmissionDAO {
     public String[] getPatientSummaryByAdmissionId(int admissionId) {
         String query = "SELECT PatientID, PatientName, DoctorName, HospitalName " +
                 "FROM PatientSummaryView WHERE AdmissionID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -130,8 +123,6 @@ public class AdmissionDAO {
         String query = "SELECT AdmissionID, PatientName, RoomNumber, Status " +
                 "FROM PatientSummaryView WHERE DoctorID = ? AND Status = 'ADMITTED'";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, doctorId);
@@ -154,8 +145,6 @@ public class AdmissionDAO {
     public boolean reassignAdminForAdmissions(int oldAdminId, int newAdminId) {
         String query = "UPDATE Admission SET AdminID = ? WHERE AdminID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, newAdminId);
@@ -170,9 +159,31 @@ public class AdmissionDAO {
         }
     }
 
+    public String generateAdmissionCode(int hospitalID){
+        String query = "SELECT COUNT(*) FROM Admission WHERE HospitalID = ?";
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalID);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("ADM%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating Admission Code: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     private Admission buildAdmissionFromResultSet(ResultSet rs) throws SQLException {
         Admission ad = new Admission();
         ad.setAdmissionID(rs.getInt("AdmissionID"));
+        ad.setAdmissionCode(rs.getString("AdmissionCode"));
         ad.setAdmissionDate(rs.getString("AdmissionDate"));
         ad.setDischargeDate(rs.getString("DischargeDate"));
         ad.setRoomNumber(rs.getString("RoomNumber"));

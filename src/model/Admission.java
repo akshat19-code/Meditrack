@@ -3,6 +3,7 @@ package model;
 public class Admission {
 
     private int admissionID;
+    private String admissionCode;
     private String admissionDate;
     private String dischargeDate;
     private String roomNumber;
@@ -33,6 +34,7 @@ public class Admission {
     }
 
     public int getAdmissionID() { return admissionID; }
+    public String getAdmissionCode() {return admissionCode;}
     public String getAdmissionDate() { return admissionDate; }
     public String getDischargeDate() { return dischargeDate; }
     public String getRoomNumber() { return roomNumber; }
@@ -45,6 +47,7 @@ public class Admission {
     public int getHospitalID() { return hospitalID; }
 
     public void setAdmissionID(int admissionID) { this.admissionID = admissionID; }
+    public void setAdmissionCode(String admissionCode) {this.admissionCode = admissionCode;}
     public void setAdmissionDate(String admissionDate) { this.admissionDate = admissionDate; }
     public void setDischargeDate(String dischargeDate) { this.dischargeDate = dischargeDate; }
     public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }

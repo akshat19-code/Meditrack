@@ -243,9 +243,15 @@ public class AdminMenu {
         d.setQualification(qualification);
         d.setConsultationFee(fee);
         d.setHospitalID(loggedInAdmin.getHospitalID());
-
+        String doctorCode = doctorDAO.generateDoctorCode(loggedInAdmin.getHospitalID());
+        d.setDoctorCode(doctorCode);
         boolean success = doctorDAO.insertDoctor(d);
-        System.out.println(success ? "Doctor added successfully!" : "Failed to add doctor.");
+        if (success) {
+            System.out.println("Doctor added successfully!");
+            System.out.println("Doctor Code: " + doctorCode);
+        } else {
+            System.out.println("Failed to add doctor.");
+        }
         navStack.pop();
     }
 
@@ -292,10 +298,16 @@ public class AdminMenu {
         lt.setPhoneNo(phone);
         lt.setQualification(qualification);
         lt.setHospitalID(loggedInAdmin.getHospitalID());
+        String labTechnicianCode = labTechDAO.generateLabTechnicianCode(loggedInAdmin.getHospitalID());
+        lt.setLabTechnicianCode(labTechnicianCode);
 
         boolean success = labTechDAO.insertLabTechnician(lt);
-        System.out.println(success ? "Lab Technician added successfully!" : "Failed to add lab technician.");
-
+        if (success) {
+            System.out.println("Lab Technician added successfully!");
+            System.out.println("Lab Technician Code: " + labTechnicianCode);
+        } else {
+            System.out.println("Failed to add lab technician.");
+        }
         navStack.pop();
     }
 
@@ -369,19 +381,21 @@ public class AdminMenu {
             p.setState(state);
             p.setPincode(pincode);
             p.setHospitalID(loggedInAdmin.getHospitalID());
+            String patientCode = patientDAO.generatePatientCode(loggedInAdmin.getHospitalID());
+            p.setPatientCode(patientCode);
 
-            boolean patientAdded = patientDAO.insertPatient(p);
-            if (!patientAdded) {
-                System.out.println("Failed to register patient.");
-                navStack.pop();
-                return;
+            boolean success = patientDAO.insertPatient(p);
+
+            if (success) {
+                System.out.println("Patient added successfully!");
+                System.out.println("Patient Code: " + patientCode);
+            } else {
+                System.out.println("Failed to add patient.");
             }
-            System.out.println("Patient registered successfully!");
 
             newPatient = patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID());
         }
 
-        // ---- Department selection before doctor assignment ----
         List<Doctor> hospitalDoctors = doctorDAO.getAllDoctorsByHospital(loggedInAdmin.getHospitalID());
         List<String> departments = new ArrayList<>();
         for (Doctor d : hospitalDoctors) {
@@ -424,8 +438,6 @@ public class AdminMenu {
             return;
         }
 
-        // ---- Requirement 5: Room Allocation Improvement ----
-        // Step 1: show available Room Types with their fixed charges.
         printRoomTypeMenu();
         int roomTypeChoice = InputValidator.readInt(sc, "Select Room Type: ");
         sc.nextLine();
@@ -439,7 +451,6 @@ public class AdminMenu {
         String roomType = ROOM_TYPE_VALUES[roomTypeChoice - 1];
         double roomCharge = ROOM_TYPE_CHARGES[roomTypeChoice - 1];
 
-        // Step 2: show only the available room numbers of the selected type.
         List<String> availableRooms = getAvailableRoomNumbers(roomType);
         if (availableRooms.isEmpty()) {
             System.out.println("No available rooms of this type right now. Admission cancelled.");
@@ -458,7 +469,6 @@ public class AdminMenu {
         }
 
         String roomNumber = availableRooms.get(roomChoice - 1);
-        // Step 3: charge is auto-assigned from the selected Room Type - no manual entry.
 
         String admissionDate = InputValidator.readDate(sc, "Admission Date (YYYY-MM-DD): ", false);
 
@@ -473,10 +483,14 @@ public class AdminMenu {
         ad.setDoctorID(assignedDoctor.getDoctorID());
         ad.setAdminID(loggedInAdmin.getAdminID());
         ad.setHospitalID(loggedInAdmin.getHospitalID());
+        String admissionCode = admissionDAO.generateAdmissionCode(loggedInAdmin.getHospitalID());
+        ad.setAdmissionCode(admissionCode);
 
         boolean admissionAdded = admissionDAO.insertAdmission(ad);
         if (admissionAdded) {
-            System.out.println("Admission created successfully! Assigned Doctor: " + assignedDoctor.getName());
+            System.out.println("Admission created successfully!");
+            System.out.println("Admission Code: " + admissionCode);
+            System.out.println("Assigned Doctor: " + assignedDoctor.getName());
             System.out.println("Room " + roomNumber + " assigned to " + newPatient.getName());
             fileManager.addAdmissionHistoryEntry(newPatient.getPatientID(), assignedDoctor.getName(),
                     roomNumber, roomType, admissionDate);
@@ -518,7 +532,7 @@ public class AdminMenu {
         String unit = InputValidator.readNonEmptyString(sc, "Unit (e.g. g/dL): ");
         double testCharge = InputValidator.readPositiveDouble(sc, "Test Charge: ");
         sc.nextLine();
-        String equipmentName = InputValidator.readNonEmptyString(sc, "Equipment Name Required: ");
+        String equipmentName = InputValidator.readNonEmptyString(sc, "Required Equipment Name : ");
 
         Equipment existingEquipment = equipmentDAO.findByEquipmentName(equipmentName, hospitalId);
         int equipmentId;
@@ -532,11 +546,22 @@ public class AdminMenu {
             newEquipment.setStatus("AVAILABLE");
             newEquipment.setPurchaseDate(java.time.LocalDate.now().toString());
             newEquipment.setHospitalID(hospitalId);
+            String equipmentCode = equipmentDAO.generateEquipmentCode(hospitalId);
+            newEquipment.setEquipmentCode(equipmentCode);
 
-            equipmentDAO.insertEquipment(newEquipment);
-            Equipment created = equipmentDAO.findByEquipmentName(equipmentName, hospitalId);
-            equipmentId = created.getEquipmentID();
-            System.out.println("New equipment created.");
+            boolean equipmentAdded = equipmentDAO.insertEquipment(newEquipment);
+
+            if (equipmentAdded) {
+                Equipment created = equipmentDAO.findByEquipmentName(equipmentName, hospitalId);
+                equipmentId = created.getEquipmentID();
+
+                System.out.println("New equipment created.");
+                System.out.println("Equipment Code: " + equipmentCode);
+            } else {
+                System.out.println("Failed to create equipment.");
+                navStack.pop();
+                return;
+            }
         }
 
         TestType tt = new TestType();
@@ -547,10 +572,17 @@ public class AdminMenu {
         tt.setTestCharge(testCharge);
         tt.setHospitalID(hospitalId);
         tt.setEquipmentID(equipmentId);
+        String testTypeCode = testTypeDAO.generateTestTypeCode(hospitalId);
+        tt.setTestTypeCode(testTypeCode);
 
         boolean success = testTypeDAO.insertTestType(tt);
-        System.out.println(success ? "Test Type added successfully!" : "Failed to add test type.");
 
+        if (success) {
+            System.out.println("Test Type added successfully!");
+            System.out.println("Test Type Code: " + testTypeCode);
+        } else {
+            System.out.println("Failed to add test type.");
+        }
         navStack.pop();
     }
 

@@ -9,11 +9,11 @@ import java.util.List;
 
 public class TestRequestDAO {
 
+    Connection con = DatabaseConnection.getConnection();
+
     public int insertTestRequest(TestRequest tr) {
         String query = "INSERT INTO TestRequest (RequestDate, EquipmentUsageDate, Priority, Status, AdmissionID, DoctorID, TestTypeID, EquipmentID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -43,8 +43,6 @@ public class TestRequestDAO {
     public TestRequest getTestRequestById(int testRequestId) {
         String query = "SELECT * FROM TestRequest WHERE TestRequestID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, testRequestId);
@@ -67,8 +65,6 @@ public class TestRequestDAO {
                 "WHERE a.HospitalID = ? AND tr.Status = 'PENDING' " +
                 "ORDER BY tr.RequestDate ASC";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, hospitalId);
@@ -84,17 +80,12 @@ public class TestRequestDAO {
         return requestList;
     }
 
-    // NEW - generic status-filtered version of getPendingTestRequests, added
-    // to support showing a hospital's currently-PROCESSING requests before
-    // asking a Lab Technician for a Test Request ID during result upload.
     public List<TestRequest> getRequestsByStatusForHospital(int hospitalId, String status) {
         List<TestRequest> requestList = new ArrayList<>();
         String query = "SELECT tr.* FROM TestRequest tr " +
                 "JOIN Admission a ON tr.AdmissionID = a.AdmissionID " +
                 "WHERE a.HospitalID = ? AND tr.Status = ? " +
                 "ORDER BY tr.RequestDate ASC";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -114,8 +105,6 @@ public class TestRequestDAO {
 
     public boolean updateTestRequestStatus(int testRequestId, String newStatus) {
         String query = "UPDATE TestRequest SET Status = ? WHERE TestRequestID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 

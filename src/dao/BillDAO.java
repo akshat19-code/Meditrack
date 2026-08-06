@@ -7,16 +7,11 @@ import java.sql.*;
 
 public class BillDAO {
 
+    Connection con = DatabaseConnection.getConnection();
+
     public  double getDoctorRevenue(int hospitalId) {
 
-        String query = """
-            SELECT SUM(b.DoctorFee) AS Revenue
-            FROM Bill b
-            JOIN Admission a ON b.AdmissionID = a.AdmissionID
-            WHERE a.HospitalID = ?
-            """;
-
-        Connection con = DatabaseConnection.getConnection();
+        String query = "SELECT SUM(b.DoctorFee) AS Revenue FROM Bill b JOIN Admission a ON b.AdmissionID = a.AdmissionID WHERE a.HospitalID = ?";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -36,14 +31,8 @@ public class BillDAO {
 
     public double getTestRevenue(int hospitalId) {
 
-        String query = """
-            SELECT SUM(b.TestCharge) AS Revenue
-            FROM Bill b
-            JOIN Admission a ON b.AdmissionID = a.AdmissionID
-            WHERE a.HospitalID = ?
-            """;
+        String query = "SELECT SUM(b.TestCharge) AS Revenue FROM Bill b JOIN Admission a ON b.AdmissionID = a.AdmissionID WHERE a.HospitalID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -63,14 +52,7 @@ public class BillDAO {
 
     public double getRoomRevenue(int hospitalId) {
 
-        String query = """
-            SELECT SUM(b.RoomCharge) AS Revenue
-            FROM Bill b
-            JOIN Admission a ON b.AdmissionID = a.AdmissionID
-            WHERE a.HospitalID = ?
-            """;
-
-        Connection con = DatabaseConnection.getConnection();
+        String query = "SELECT SUM(b.RoomCharge) AS Revenue FROM Bill b JOIN Admission a ON b.AdmissionID = a.AdmissionID WHERE a.HospitalID = ?";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -90,14 +72,7 @@ public class BillDAO {
 
     public double getTotalRevenue(int hospitalId) {
 
-        String query = """
-            SELECT SUM(b.TotalAmount) AS Revenue
-            FROM Bill b
-            JOIN Admission a ON b.AdmissionID = a.AdmissionID
-            WHERE a.HospitalID = ?
-            """;
-
-        Connection con = DatabaseConnection.getConnection();
+        String query = "SELECT SUM(b.TotalAmount) AS Revenue FROM Bill b JOIN Admission a ON b.AdmissionID = a.AdmissionID WHERE a.HospitalID = ?";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 

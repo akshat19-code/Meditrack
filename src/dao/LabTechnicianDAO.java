@@ -9,23 +9,24 @@ import java.util.List;
 
 public class LabTechnicianDAO {
 
-    public boolean insertLabTechnician(LabTechnician lt) {
-        String query = "INSERT INTO LabTechnician (FirstName, LastName, Name, Username, Password, Email, PhoneNo, Qualification, HospitalID) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    Connection con = DatabaseConnection.getConnection();
 
-        Connection con = DatabaseConnection.getConnection();
+    public boolean insertLabTechnician(LabTechnician lt) {
+        String query = "INSERT INTO LabTechnician (LabTechnicianCode, FirstName, LastName, Name, Username, Password, Email, PhoneNo, Qualification, HospitalID) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
-            pstmt.setString(1, lt.getFirstName());
-            pstmt.setString(2, lt.getLastName());
-            pstmt.setString(3, lt.getFirstName() + " " + lt.getLastName());
-            pstmt.setString(4, lt.getUsername());
-            pstmt.setString(5, lt.getPassword());
-            pstmt.setString(6, lt.getEmail());
-            pstmt.setString(7, lt.getPhoneNo());
-            pstmt.setString(8, lt.getQualification());
-            pstmt.setInt(9, lt.getHospitalID());
+            pstmt.setString(1, lt.getLabTechnicianCode());
+            pstmt.setString(2, lt.getFirstName());
+            pstmt.setString(3, lt.getLastName());
+            pstmt.setString(4, lt.getFirstName() + " " + lt.getLastName());
+            pstmt.setString(5, lt.getUsername());
+            pstmt.setString(6, lt.getPassword());
+            pstmt.setString(7, lt.getEmail());
+            pstmt.setString(8, lt.getPhoneNo());
+            pstmt.setString(9, lt.getQualification());
+            pstmt.setInt(10, lt.getHospitalID());
 
             int rows = pstmt.executeUpdate();
             return rows > 0;
@@ -36,11 +37,8 @@ public class LabTechnicianDAO {
         }
     }
 
-    // Username stays hospital-specific.
     public LabTechnician getLabTechnicianByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM LabTechnician WHERE Username = ? AND HospitalID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -61,8 +59,6 @@ public class LabTechnicianDAO {
     public LabTechnician getLabTechnicianById(int labTechId) {
         String query = "SELECT * FROM LabTechnician WHERE LabTechID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, labTechId);
@@ -82,8 +78,6 @@ public class LabTechnicianDAO {
         List<LabTechnician> labTechList = new ArrayList<>();
         String query = "SELECT * FROM LabTechnician WHERE HospitalID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setInt(1, hospitalId);
@@ -102,8 +96,6 @@ public class LabTechnicianDAO {
     public boolean updatePassword(int labTechId, String newPassword) {
         String query = "UPDATE LabTechnician SET Password = ? WHERE LabTechID = ?";
 
-        Connection con = DatabaseConnection.getConnection();
-
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
             pstmt.setString(1, newPassword);
@@ -118,11 +110,8 @@ public class LabTechnicianDAO {
         }
     }
 
-    // NEW - Phone number checked GLOBALLY across all hospitals.
     public LabTechnician getLabTechnicianByPhone(String phone) {
         String query = "SELECT * FROM LabTechnician WHERE PhoneNo = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -139,11 +128,8 @@ public class LabTechnicianDAO {
         return null;
     }
 
-    // NEW - Email checked GLOBALLY across all hospitals.
     public LabTechnician getLabTechnicianByEmail(String email) {
         String query = "SELECT * FROM LabTechnician WHERE Email = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
@@ -160,9 +146,31 @@ public class LabTechnicianDAO {
         return null;
     }
 
+    public String generateLabTechnicianCode(int hospitalID){
+        String query = "SELECT COUNT(*) FROM LabTechnician WHERE HospitalID = ?";
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalID);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("LAB%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating LabTechnician Code: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     private LabTechnician buildLabTechFromResultSet(ResultSet rs) throws SQLException {
         LabTechnician lt = new LabTechnician();
         lt.setLabTechID(rs.getInt("LabTechID"));
+        lt.setLabTechnicianCode(rs.getString("LabTechnicianCode"));
         lt.setFirstName(rs.getString("FirstName"));
         lt.setLastName(rs.getString("LastName"));
         lt.setName(rs.getString("Name"));

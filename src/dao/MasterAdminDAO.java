@@ -7,10 +7,10 @@ import java.sql.*;
 
 public class MasterAdminDAO {
 
+    Connection con = DatabaseConnection.getConnection();
+
     public MasterAdmin getMasterAdminByUsername(String username) {
         String query = "SELECT * FROM MasterAdmin WHERE Username = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
             pstmt.setString(1, username);
@@ -36,8 +36,6 @@ public class MasterAdminDAO {
 
     public boolean updatePassword(int masterAdminId, String newPassword) {
         String query = "UPDATE MasterAdmin SET Password = ? WHERE MasterAdminID = ?";
-
-        Connection con = DatabaseConnection.getConnection();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
