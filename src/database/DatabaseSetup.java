@@ -1,8 +1,6 @@
 package database;
 
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DatabaseSetup {
 

@@ -32,7 +32,7 @@ public class MasterAdminMenu {
             System.out.println("\nPath: " + navStack.getPath());
             System.out.println("===== Master Admin Menu =====");
             System.out.println("1. Register New Hospital");
-            System.out.println("2. View All Hospitals");
+            System.out.println("2. View Hospitals");
             System.out.println("3. Suspend / Reactivate Hospital");
             System.out.println("4. View Combined Login Log (All Hospitals)");
             System.out.println("5. View Login Log For One Hospital");
@@ -45,7 +45,7 @@ public class MasterAdminMenu {
 
             switch (choice) {
                 case 1 -> registerHospital();
-                case 2 -> viewAllHospitals();
+                case 2 -> viewHospitals();
                 case 3 -> updateHospitalStatus();
                 case 4 -> viewCombinedLoginLog();
                 case 5 -> viewLoginLogForOneHospital();
@@ -63,6 +63,61 @@ public class MasterAdminMenu {
                 default -> System.out.println("Invalid choice.");
             }
         }
+    }
+
+    private void viewHospitals() {
+        navStack.push("ViewHospitals");
+
+        boolean flag = true;
+
+        while (flag) {
+            System.out.println("\nPath: " + navStack.getPath());
+            System.out.println("===== View Hospital =====");
+            System.out.println("1. Current Hospitals");
+            System.out.println("2. Past Hospitals");
+            System.out.println("0. Back");
+
+            int choice = InputValidator.readInt(sc, "Enter choice: ");
+
+            switch (choice) {
+                case 1 -> viewCurrentHospitals();
+                case 2 -> viewRemovedHospitals();
+                case 0 -> flag = false;
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+
+        navStack.pop();
+    }
+
+    private void viewRemovedHospitals() {
+        navStack.push("PastHospitals");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Hospital> hospitals = hospitalDAO.getRemovedHospitals();
+
+        if (hospitals.isEmpty()) {
+            System.out.println("No removed hospitals found.");
+        } else {
+            printHospitalTable(hospitals);
+        }
+
+        navStack.pop();
+    }
+
+    private void viewCurrentHospitals() {
+        navStack.push("CurrentHospitals");
+        System.out.println("\nPath: " + navStack.getPath());
+
+        List<Hospital> hospitals = hospitalDAO.getCurrentHospitals();
+
+        if (hospitals.isEmpty()) {
+            System.out.println("No current hospitals found.");
+        } else {
+            printHospitalTable(hospitals);
+        }
+
+        navStack.pop();
     }
 
     private void dashboard() {
@@ -107,14 +162,8 @@ public class MasterAdminMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         sc.nextLine();
-        System.out.print("Hospital Code: ");
-        String code = sc.nextLine();
 
-        if (hospitalDAO.getHospitalByCode(code) != null) {
-            System.out.println("A hospital with this Hospital Code already exists.");
-            navStack.pop();
-            return;
-        }
+        String code = hospitalDAO.generateHospitalCode();
 
         System.out.print("Hospital Name: ");
         String name = sc.nextLine();
@@ -153,20 +202,6 @@ public class MasterAdminMenu {
             }
         } else {
             System.out.println("Failed to register hospital.");
-        }
-
-        navStack.pop();
-    }
-
-    private void viewAllHospitals() {
-        navStack.push("ViewAllHospitals");
-        System.out.println("\nPath: " + navStack.getPath());
-
-        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
-        if (hospitals.isEmpty()) {
-            System.out.println("No hospitals registered yet.");
-        } else {
-            printHospitalTable(hospitals);
         }
 
         navStack.pop();

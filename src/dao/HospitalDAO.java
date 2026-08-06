@@ -2,6 +2,7 @@ package dao;
 
 import database.DatabaseConnection;
 import model.Hospital;
+import java.util.*;
 
 import java.sql.*;
 
@@ -33,6 +34,27 @@ public class HospitalDAO {
             System.out.println("Error inserting Hospital: " + e.getMessage());
             return false;
         }
+    }
+
+    public String generateHospitalCode() {
+        String query = "SELECT MAX(HospitalID) FROM Hospital";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("HSP%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating Hospital Code: " + e.getMessage());
+        }
+
+        return null;
     }
 
     public Hospital getHospitalByCode(String hospitalCode) {
@@ -94,8 +116,8 @@ public class HospitalDAO {
         }
     }
 
-    public java.util.List<Hospital> getAllHospitals() {
-        java.util.List<Hospital> hospitalList = new java.util.ArrayList<>();
+    public List<Hospital> getAllHospitals() {
+        List<Hospital> hospitalList = new ArrayList<>();
         String query = "SELECT * FROM Hospital";
 
         Connection con = DatabaseConnection.getConnection();
@@ -109,6 +131,44 @@ public class HospitalDAO {
 
         } catch (SQLException e) {
             System.out.println("Error fetching Hospitals: " + e.getMessage());
+        }
+        return hospitalList;
+    }
+
+    public List<Hospital> getCurrentHospitals() {
+        List<Hospital> hospitalList = new ArrayList<>();
+        String query = "SELECT * FROM Hospital WHERE Status IN ('ACTIVE', 'SUSPENDED') ORDER BY HospitalID";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                hospitalList.add(buildHospitalFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Current Hospitals: " + e.getMessage());
+        }
+        return hospitalList;
+    }
+
+    public List<Hospital> getRemovedHospitals() {
+        List<Hospital> hospitalList = new ArrayList<>();
+        String query = "SELECT * FROM Hospital WHERE Status = 'REMOVED' ORDER BY HospitalID";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                hospitalList.add(buildHospitalFromResultSet(rs));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Removed Hospitals: " + e.getMessage());
         }
         return hospitalList;
     }
