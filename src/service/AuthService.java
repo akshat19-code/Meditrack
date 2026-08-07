@@ -23,7 +23,7 @@ public class AuthService {
             fileManager.logLoginAttempt("MASTER_ADMIN", null, username, false);
             return null;
         }
-        if (!ma.getPassword().equals(password)) {
+        if (!ma.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password.");
             fileManager.logLoginAttempt("MASTER_ADMIN", null, username, false);
             return null;

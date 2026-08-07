@@ -558,7 +558,7 @@ public class AdminMenu {
         navStack.push("DischargePatient");
         System.out.println("\nPath: " + navStack.getPath());
 
-        // Requirement 2: show available admissions before asking for an Admission ID.
+        // Requirement 2: show available admissions before asking for a selection.
         List<Admission> activeAdmissions = getActiveAdmissionsForHospital();
         if (activeAdmissions.isEmpty()) {
             System.out.println("No currently admitted patients found.");
@@ -567,13 +567,23 @@ public class AdminMenu {
         }
         printAdmissionTable(activeAdmissions);
 
-        int admissionId = InputValidator.readInt(sc, "Enter Admission ID: ");
+        Admission ad;
 
-        Admission ad = admissionDAO.getAdmissionById(admissionId);
-        if (ad == null) {
-            System.out.println("Admission not found.");
-            navStack.pop();
-            return;
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Patient to Discharge (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > activeAdmissions.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            ad = activeAdmissions.get(choice - 1);
+            break;
         }
 
         if (ad.getHospitalID() != loggedInAdmin.getHospitalID()) {
@@ -588,8 +598,11 @@ public class AdminMenu {
             return;
         }
 
+        Patient p = patientDAO.getPatientById(ad.getPatientID());
+        String patientName = (p != null) ? p.getName() : "Unknown";
+
         sc.nextLine();
-        System.out.print("Confirm discharge for Admission ID " + admissionId + "? (Y/N): ");
+        System.out.print("Confirm discharge for " + patientName + "? (Y/N): ");
         String confirm = sc.nextLine();
 
         if (!confirm.equalsIgnoreCase("Y")) {
@@ -598,7 +611,7 @@ public class AdminMenu {
             return;
         }
 
-        billingService.dischargeAndGenerateBill(admissionId);
+        billingService.dischargeAndGenerateBill(ad.getAdmissionID());
 
         navStack.pop();
     }
@@ -728,12 +741,13 @@ public class AdminMenu {
     private void printDoctorTable(List<Doctor> doctors) {
         System.out.println("-".repeat(95));
         System.out.printf("%-5s %-25s %-18s %-18s %-10s %-10s%n",
-                "ID", "Name", "Specialization", "Department", "Patients", "Fee");
+                "No.", "Name", "Specialization", "Department", "Patients", "Fee");
         System.out.println("-".repeat(95));
 
+        int srNo = 1;
         for (Doctor d : doctors) {
             System.out.printf("%-5d %-25s %-18s %-18s %-10d Rs.%-8.2f%n",
-                    d.getDoctorID(),
+                    srNo++,
                     d.getName(),
                     d.getSpecialization(),
                     d.getDepartment(),
@@ -747,12 +761,13 @@ public class AdminMenu {
     private void printLabTechnicianTable(List<LabTechnician> labTechs) {
         System.out.println("-".repeat(75));
         System.out.printf("%-5s %-25s %-20s %-15s%n",
-                "ID", "Name", "Qualification", "Phone");
+                "No.", "Name", "Qualification", "Phone");
         System.out.println("-".repeat(75));
 
+        int srNo = 1;
         for (LabTechnician lt : labTechs) {
             System.out.printf("%-5d %-25s %-20s %-15s%n",
-                    lt.getLabTechID(),
+                    srNo++,
                     lt.getName(),
                     lt.getQualification(),
                     lt.getPhoneNo());
@@ -763,14 +778,15 @@ public class AdminMenu {
 
     private void printTestTypeTable(List<TestType> testTypes) {
         System.out.println("-".repeat(90));
-        System.out.printf("%-5s %-30s %-20s %-10s%n",
-                "ID", "Test Name", "Normal Range", "Charge");
+        System.out.printf("%-5s %-40s %-30s %-10s%n",
+                "No.", "Test Name", "Normal Range", "Charge");
         System.out.println("-".repeat(90));
 
+        int srNo = 1;
         for (TestType tt : testTypes) {
             String range = String.format("%.2f - %.2f %s", tt.getNormalMin(), tt.getNormalMax(), tt.getUnit());
-            System.out.printf("%-5d %-30s %-20s Rs.%-8.2f%n",
-                    tt.getTestTypeID(),
+            System.out.printf("%-5d %-40s %-30s Rs.%-8.2f%n",
+                    srNo++,
                     tt.getTestName(),
                     range,
                     tt.getTestCharge());
@@ -782,12 +798,13 @@ public class AdminMenu {
     private void printEquipmentTable(List<Equipment> equipmentList) {
         System.out.println("-".repeat(80));
         System.out.printf("%-5s %-30s %-15s %-15s%n",
-                "ID", "Equipment Name", "Status", "Purchase Date");
+                "No.", "Equipment Name", "Status", "Purchase Date");
         System.out.println("-".repeat(80));
 
+        int srNo = 1;
         for (Equipment eq : equipmentList) {
             System.out.printf("%-5d %-30s %-15s %-15s%n",
-                    eq.getEquipmentID(),
+                    srNo++,
                     eq.getEquipmentName(),
                     eq.getStatus(),
                     eq.getPurchaseDate());
@@ -798,13 +815,14 @@ public class AdminMenu {
 
     private void printPatientTable(List<Patient> patients) {
         System.out.println("-".repeat(90));
-        System.out.printf("%-5s %-25s %-5s %-8s %-10s %-15s%n",
-                "ID", "Name", "Age", "Gender", "Blood Grp", "City");
+        System.out.printf("%-5s %-35s %-5s %-8s %-10s %-15s%n",
+                "No.", "Name", "Age", "Gender", "Blood Grp", "City");
         System.out.println("-".repeat(90));
 
+        int srNo = 1;
         for (Patient p : patients) {
-            System.out.printf("%-5d %-25s %-12s %-8s %-10s %-15s%n",
-                    p.getPatientID(),
+            System.out.printf("%-5d %-35s %-10s %-8s %-10s %-15s%n",
+                    srNo++,
                     p.getName(),
                     patientDAO.calculateAge(p.getDob()),
                     p.getGender(),
@@ -817,16 +835,17 @@ public class AdminMenu {
 
     private void printAdmissionTable(List<Admission> admissions) {
         System.out.println("-".repeat(90));
-        System.out.printf("%-14s %-25s %-12s %-15s %-12s%n",
-                "Admission ID", "Patient Name", "Room No.", "Room Type", "Status");
+        System.out.printf("%-6s %-25s %-12s %-15s %-12s%n",
+                "No.", "Patient Name", "Room No.", "Room Type", "Status");
         System.out.println("-".repeat(90));
 
+        int srNo = 1;
         for (Admission ad : admissions) {
             Patient p = patientDAO.getPatientById(ad.getPatientID());
             String patientName = (p != null) ? p.getName() : "Unknown";
 
-            System.out.printf("%-14d %-25s %-12s %-15s %-12s%n",
-                    ad.getAdmissionID(),
+            System.out.printf("%-6d %-25s %-12s %-15s %-12s%n",
+                    srNo++,
                     patientName,
                     ad.getRoomNumber(),
                     ad.getRoomType(),

@@ -81,7 +81,7 @@ public class LabTechnicianMenu {
         if (details != null) {
             System.out.println("Now processing:");
             printRequestDetails(details);
-            System.out.println("(Remember this Request ID to upload its result next)");
+            System.out.println("You can upload the result from 'Upload Result'.");
 
             try {
                 System.out.println("\nCollecting Sample...");
@@ -116,17 +116,30 @@ public class LabTechnicianMenu {
         if (processingRequests.isEmpty()) {
             System.out.println("No test requests are currently being processed.");
             System.out.println("(Use 'Process Next Request' first to move a request into PROCESSING.)");
-        } else {
-            printProcessingRequestsTable(processingRequests);
-        }
-
-        int testRequestId = InputValidator.readInt(sc, "Enter Test Request ID (that you are currently processing): ");
-
-        TestRequest tr = testRequestDAO.getTestRequestById(testRequestId);
-        if (tr == null) {
-            System.out.println("Test request not found.");
             navStack.pop();
             return;
+        }
+
+        printProcessingRequestsTable(processingRequests);
+
+        TestRequest tr;
+
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Test Request (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > processingRequests.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            TestRequest selected = processingRequests.get(choice - 1);
+            tr = selected;
+            break;
         }
 
         Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
@@ -141,7 +154,7 @@ public class LabTechnicianMenu {
         String analysisDate = java.time.LocalDate.now().toString();
 
         boolean success = reportAnalyser.generateReport(
-                testRequestId, resultValue, analysisDate, loggedInLabTech.getLabTechID());
+                tr.getTestRequestID(), resultValue, analysisDate, loggedInLabTech.getLabTechID());
 
         System.out.println(success ? "Report generated successfully!" : "Failed to generate report.");
 
@@ -185,20 +198,21 @@ public class LabTechnicianMenu {
 
     private void printRequestDetails(String[] details) {
         System.out.println("-".repeat(70));
-        System.out.printf("%-15s %-20s %-20s %-10s%n",
-                "Request ID", "Patient", "Test", "Priority");
+        System.out.printf("%-5s %-20s %-20s %-10s%n",
+                "No.", "Patient", "Test", "Priority");
         System.out.println("-".repeat(70));
-        System.out.printf("%-15s %-20s %-20s %-10s%n",
-                details[0], details[1], details[2], details[3]);
+        System.out.printf("%-5d %-20s %-20s %-10s%n",
+                1, details[1], details[2], details[3]);
         System.out.println("-".repeat(70));
     }
 
     private void printProcessingRequestsTable(List<TestRequest> requests) {
         System.out.println("-".repeat(95));
         System.out.printf("%-6s %-22s %-22s %-10s %-15s%n",
-                "ReqID", "Patient", "Test", "Priority", "Usage Date");
+                "No.", "Patient", "Test", "Priority", "Usage Date");
         System.out.println("-".repeat(95));
 
+        int srNo = 1;
         for (TestRequest tr : requests) {
             String patientName = "Unknown";
             Admission ad = admissionDAO.getAdmissionById(tr.getAdmissionID());
@@ -213,7 +227,7 @@ public class LabTechnicianMenu {
             String testName = (tt != null) ? tt.getTestName() : "Unknown Test";
 
             System.out.printf("%-6d %-22s %-22s %-10s %-15s%n",
-                    tr.getTestRequestID(),
+                    srNo++,
                     patientName,
                     testName,
                     tr.getPriority(),

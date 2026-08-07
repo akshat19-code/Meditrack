@@ -221,13 +221,23 @@ public class MasterAdminMenu {
         System.out.println("---- Existing Hospitals ----");
         printHospitalTable(hospitals);
 
-        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
+        Hospital h;
 
-        Hospital h = hospitalDAO.getHospitalById(hospitalId);
-        if (h == null) {
-            System.out.println("Hospital not found.");
-            navStack.pop();
-            return;
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Hospital (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > hospitals.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            h = hospitals.get(choice - 1);
+            break;
         }
 
         if (h.getStatus().equalsIgnoreCase("REMOVED")) {
@@ -247,7 +257,7 @@ public class MasterAdminMenu {
         System.out.print("Enter your Master Admin Password to confirm: ");
         String password = sc.nextLine();
 
-        if (!loggedInMasterAdmin.getPassword().equals(password)) {
+        if (!loggedInMasterAdmin.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password. Status change cancelled.");
             navStack.pop();
             return;
@@ -269,7 +279,7 @@ public class MasterAdminMenu {
             }
         }
 
-        boolean success = hospitalDAO.updateHospitalStatus(hospitalId, status);
+        boolean success = hospitalDAO.updateHospitalStatus(h.getHospitalID(), status);
         if (success) {
             System.out.println("Hospital status updated to " + status);
         } else {
@@ -302,15 +312,26 @@ public class MasterAdminMenu {
 
         printHospitalTable(hospitals);
 
-        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
-        sc.nextLine();
+        Hospital h;
 
-        Hospital h = hospitalDAO.getHospitalById(hospitalId);
-        if (h == null) {
-            System.out.println("Hospital not found.");
-            navStack.pop();
-            return;
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Hospital (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > hospitals.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            h = hospitals.get(choice - 1);
+            break;
         }
+
+        sc.nextLine();
 
         String log = fileManager.readHospitalLoginLog(h.getHospitalCode());
         printLoginLogTable(log);
@@ -349,34 +370,6 @@ public class MasterAdminMenu {
         } else {
             System.out.println("Failed to change password.");
         }
-
-        navStack.pop();
-    }
-
-    private void addHospitalAdmin() {
-        navStack.push("AddHospitalAdmin");
-        System.out.println("\nPath: " + navStack.getPath());
-
-        List<Hospital> hospitals = hospitalDAO.getAllHospitals();
-        if (hospitals.isEmpty()) {
-            System.out.println("No hospitals registered yet.");
-            navStack.pop();
-            return;
-        }
-
-        printHospitalTable(hospitals);
-
-        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
-        sc.nextLine();
-
-        Hospital h = hospitalDAO.getHospitalById(hospitalId);
-        if (h == null) {
-            System.out.println("Hospital not found.");
-            navStack.pop();
-            return;
-        }
-
-        createAdminForHospital(hospitalId);
 
         navStack.pop();
     }
@@ -434,15 +427,28 @@ public class MasterAdminMenu {
 
         printHospitalTable(hospitals);
 
-        int hospitalId = InputValidator.readInt(sc, "Enter Hospital ID: ");
+        Hospital h;
+
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Hospital (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > hospitals.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            h = hospitals.get(choice - 1);
+            break;
+        }
+
         sc.nextLine();
 
-        Hospital h = hospitalDAO.getHospitalById(hospitalId);
-        if (h == null) {
-            System.out.println("Hospital not found.");
-            navStack.pop();
-            return;
-        }
+        int hospitalId = h.getHospitalID();
 
         boolean flag = true;
         while (flag) {
@@ -484,28 +490,39 @@ public class MasterAdminMenu {
 
         printAdminTable(admins);
 
-        int adminId = InputValidator.readInt(sc, "Enter Admin ID to remove: ");
-        sc.nextLine();
+        Admin toRemove;
 
-        Admin toRemove = null;
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Admin to remove (0 to cancel): ");
+
+            if (choice == 0) {
+                return;
+            }
+
+            if (choice < 1 || choice > admins.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            toRemove = admins.get(choice - 1);
+            break;
+        }
+
+        int adminId = toRemove.getAdminID();
+
         List<Admin> otherAdmins = new ArrayList<>();
         for (Admin a : admins) {
-            if (a.getAdminID() == adminId) {
-                toRemove = a;
-            } else {
+            if (a.getAdminID() != adminId) {
                 otherAdmins.add(a);
             }
         }
 
-        if (toRemove == null) {
-            System.out.println("Admin not found in this hospital.");
-            return;
-        }
+        sc.nextLine();
 
         System.out.print("Enter your Master Admin Password to confirm: ");
         String password = sc.nextLine();
 
-        if (!loggedInMasterAdmin.getPassword().equals(password)) {
+        if (!loggedInMasterAdmin.getPassword().equals(PasswordUtil.hashPassword(password))) {
             System.out.println("Incorrect password. Removal cancelled.");
             return;
         }
@@ -522,21 +539,26 @@ public class MasterAdminMenu {
             System.out.println("Transfer existing admissions to another admin before removal:");
             printAdminTable(otherAdmins);
 
-            int newAdminId = InputValidator.readInt(sc, "Enter Admin ID to transfer admissions to: ");
-            sc.nextLine();
+            Admin newAdmin;
 
-            boolean validTarget = false;
-            for (Admin a : otherAdmins) {
-                if (a.getAdminID() == newAdminId) {
-                    validTarget = true;
-                    break;
+            while (true) {
+                int choice = InputValidator.readInt(sc, "Select Admin to transfer admissions to (0 to cancel): ");
+
+                if (choice == 0) {
+                    System.out.println("Removal cancelled.");
+                    return;
                 }
+
+                if (choice < 1 || choice > otherAdmins.size()) {
+                    System.out.println("Invalid choice.");
+                    continue;
+                }
+
+                newAdmin = otherAdmins.get(choice - 1);
+                break;
             }
 
-            if (!validTarget) {
-                System.out.println("Invalid Admin ID selected. Removal cancelled.");
-                return;
-            }
+            int newAdminId = newAdmin.getAdminID();
 
             boolean reassigned = admissionDAO.reassignAdminForAdmissions(adminId, newAdminId);
             if (!reassigned) {
@@ -557,12 +579,13 @@ public class MasterAdminMenu {
     private void printAdminTable(List<Admin> admins) {
         System.out.println("-".repeat(85));
         System.out.printf("%-5s %-25s %-20s %-15s%n",
-                "ID", "Name", "Username", "Phone");
+                "No.", "Name", "Username", "Phone");
         System.out.println("-".repeat(85));
 
+        int srNo = 1;
         for (Admin a : admins) {
             System.out.printf("%-5d %-25s %-20s %-15s%n",
-                    a.getAdminID(),
+                    srNo++,
                     a.getName(),
                     a.getUsername(),
                     a.getPhoneNo());
@@ -574,17 +597,18 @@ public class MasterAdminMenu {
     private void printHospitalTable(List<Hospital> hospitals){
         System.out.println("-".repeat(120));
         System.out.printf("%-5s %-8s %-35s %-45s %-10s%n",
-                "ID",
+                "No.",
                 "Code",
                 "Hospital Name",
                 "Address",
                 "Status");
         System.out.println("-".repeat(120));
 
+        int srNo = 1;
         for (Hospital h : hospitals) {
             String address = h.getStreet() + ", " +h.getCity() + ", " +h.getState();
             System.out.printf("%-5d %-8s %-35s %-45s %-10s%n",
-                    h.getHospitalID(),
+                    srNo++,
                     h.getHospitalCode(),
                     h.getHospitalName(),
                     address,

@@ -93,14 +93,25 @@ public class TestRequestQueue {
         }
         Node current = front;
         System.out.println("---- Current Test Request Queue ----");
-        while (current != null) {
-            System.out.println("Request ID: " + current.testRequestId +
-                    " | Patient: " + current.patientName +
-                    " | Test: " + current.testName +
-                    " | Priority: " + current.priority);
+        System.out.println("-".repeat(100));
+        System.out.printf("%-6s %-25s %-35s %-15s%n",
+                "No.", "Patient Name", "Test Name", "Priority");
+        System.out.println("-".repeat(100));
+        int srNo = 1;
+        while(current !=null){
+            System.out.printf("%-6d %-25s %-35s %-15s%n",srNo++,
+                    current.patientName , current.testName,current.priority);
             current = current.next;
         }
-        System.out.println("-------------------------------------");
+        System.out.println("-".repeat(100));
+//        while (current != null) {
+//            System.out.println("Request ID: " + current.testRequestId +
+//                    " | Patient: " + current.patientName +
+//                    " | Test: " + current.testName +
+//                    " | Priority: " + current.priority);
+//            current = current.next;
+//        }
+//        System.out.println("-------------------------------------");
     }
 
     public boolean isEmpty() {
