@@ -3,6 +3,7 @@ package model;
 public class Bill {
 
     private int billID;
+    private String billCode;
     private double roomCharge;
     private double doctorFee;
     private double testCharge;
@@ -24,6 +25,7 @@ public class Bill {
     }
 
     public int getBillID() { return billID; }
+    public String getBillCode() {return billCode;}
     public double getRoomCharge() { return roomCharge; }
     public double getDoctorFee() { return doctorFee; }
     public double getTestCharge() { return testCharge; }
@@ -32,6 +34,7 @@ public class Bill {
     public int getAdmissionID() { return admissionID; }
 
     public void setBillID(int billID) { this.billID = billID; }
+    public void setBillCode(String billCode) {this.billCode = billCode;}
     public void setRoomCharge(double roomCharge) { this.roomCharge = roomCharge; }
     public void setDoctorFee(double doctorFee) { this.doctorFee = doctorFee; }
     public void setTestCharge(double testCharge) { this.testCharge = testCharge; }

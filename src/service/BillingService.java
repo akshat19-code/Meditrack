@@ -17,6 +17,8 @@ public class BillingService {
     public boolean dischargeAndGenerateBill(int admissionId) {
 
         String[] summary = admissionDAO.getPatientSummaryByAdmissionId(admissionId);
+        Admission admission = admissionDAO.getAdmissionById(admissionId);
+        String billCode = billDAO.generateBillCode(admission.getHospitalID());
         if (summary == null) {
             System.out.println("Admission or associated Patient/Doctor/Hospital details not found.");
             return false;
@@ -29,8 +31,9 @@ public class BillingService {
 
         Connection con = DatabaseConnection.getConnection();
 
-        try (CallableStatement cstmt = con.prepareCall("{call GenerateBillAndDischarge(?)}")) {
+        try (CallableStatement cstmt = con.prepareCall("{call GenerateBillAndDischarge(?,?)}")) {
             cstmt.setInt(1, admissionId);
+            cstmt.setString(2, billCode);
             cstmt.execute();
         } catch (SQLException e) {
             System.out.println("Error generating bill and discharging patient: " + e.getMessage());
@@ -43,12 +46,14 @@ public class BillingService {
             return false;
         }
 
-        fileManager.writeBillFile(savedBill.getBillID(), admissionId, patientName, doctorName,
+        fileManager.writeBillFile(savedBill.getBillCode(), admissionId, patientName, doctorName,
                 hospitalName, savedBill.getRoomCharge(), savedBill.getDoctorFee(),
                 savedBill.getTestCharge(), savedBill.getTotalAmount(), savedBill.getBillDate());
         fileManager.addDischargeHistoryEntry(patientId, savedBill.getBillDate(), savedBill.getTotalAmount());
 
-        System.out.println("Patient discharged. Total Bill: Rs." + String.format("%.2f", savedBill.getTotalAmount()));
+        System.out.println("Patient discharged successfully!");
+        System.out.println("Bill Code: " + savedBill.getBillCode());
+        System.out.println("Total Bill: Rs." + String.format("%.2f", savedBill.getTotalAmount()));
         return true;
     }
 }

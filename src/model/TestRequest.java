@@ -3,6 +3,7 @@ package model;
 public class TestRequest {
 
     private int testRequestID;
+    private String testRequestCode;
     private String requestDate;
     private String equipmentUsageDate;
     private String priority;
@@ -29,6 +30,7 @@ public class TestRequest {
     }
 
     public int getTestRequestID() { return testRequestID; }
+    public String getTestRequestCode() {return testRequestCode;}
     public String getRequestDate() { return requestDate; }
     public String getEquipmentUsageDate() { return equipmentUsageDate; }
     public String getPriority() { return priority; }
@@ -39,6 +41,7 @@ public class TestRequest {
     public int getEquipmentID() { return equipmentID; }
 
     public void setTestRequestID(int testRequestID) { this.testRequestID = testRequestID; }
+    public void setTestRequestCode(String testRequestCode) {this.testRequestCode = testRequestCode;}
     public void setRequestDate(String requestDate) { this.requestDate = requestDate; }
     public void setEquipmentUsageDate(String equipmentUsageDate) {this.equipmentUsageDate = equipmentUsageDate;}
     public void setPriority(String priority) { this.priority = priority; }

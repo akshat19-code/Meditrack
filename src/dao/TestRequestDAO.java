@@ -12,19 +12,20 @@ public class TestRequestDAO {
     Connection con = DatabaseConnection.getConnection();
 
     public int insertTestRequest(TestRequest tr) {
-        String query = "INSERT INTO TestRequest (RequestDate, EquipmentUsageDate, Priority, Status, AdmissionID, DoctorID, TestTypeID, EquipmentID) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO TestRequest (TestRequestCode, RequestDate, EquipmentUsageDate, Priority, Status, AdmissionID, DoctorID, TestTypeID, EquipmentID) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setString(1, tr.getRequestDate());
-            pstmt.setString(2, tr.getEquipmentUsageDate());
-            pstmt.setString(3, tr.getPriority());
-            pstmt.setString(4, tr.getStatus());
-            pstmt.setInt(5, tr.getAdmissionID());
-            pstmt.setInt(6, tr.getDoctorID());
-            pstmt.setInt(7, tr.getTestTypeID());
-            pstmt.setInt(8, tr.getEquipmentID());
+            pstmt.setString(1, tr.getTestRequestCode());
+            pstmt.setString(2, tr.getRequestDate());
+            pstmt.setString(3, tr.getEquipmentUsageDate());
+            pstmt.setString(4, tr.getPriority());
+            pstmt.setString(5, tr.getStatus());
+            pstmt.setInt(6, tr.getAdmissionID());
+            pstmt.setInt(7, tr.getDoctorID());
+            pstmt.setInt(8, tr.getTestTypeID());
+            pstmt.setInt(9, tr.getEquipmentID());
 
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
@@ -120,9 +121,31 @@ public class TestRequestDAO {
         }
     }
 
+    public String generateTestRequestCode(int hospitalID){
+        String query = "SELECT COUNT(*) FROM TestRequest WHERE HospitalID = ?";
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalID);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("TRQ%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating Test Request Code: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     private TestRequest buildTestRequestFromResultSet(ResultSet rs) throws SQLException {
         TestRequest tr = new TestRequest();
         tr.setTestRequestID(rs.getInt("TestRequestID"));
+        tr.setTestRequestCode(rs.getString("TestRequestCode"));
         tr.setRequestDate(rs.getString("RequestDate"));
         tr.setEquipmentUsageDate(rs.getString("EquipmentUsageDate"));
         tr.setPriority(rs.getString("Priority"));

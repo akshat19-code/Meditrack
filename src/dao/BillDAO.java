@@ -103,6 +103,7 @@ public class BillDAO {
             if (rs.next()) {
                 Bill b = new Bill();
                 b.setBillID(rs.getInt("BillID"));
+                b.setBillCode(rs.getString("BillCode"));
                 b.setRoomCharge(rs.getDouble("RoomCharge"));
                 b.setDoctorFee(rs.getDouble("DoctorFee"));
                 b.setTestCharge(rs.getDouble("TestCharge"));
@@ -114,6 +115,26 @@ public class BillDAO {
 
         } catch (SQLException e) {
             System.out.println("Error fetching Bill: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public String generateBillCode(int hospitalID){
+        String query = "SELECT COUNT(*) FROM Bill WHERE HospitalID = ?";
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalID);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("BIL%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating Bill Code: " + e.getMessage());
         }
         return null;
     }

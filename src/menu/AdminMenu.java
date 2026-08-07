@@ -760,12 +760,12 @@ public class AdminMenu {
     private void printDoctorTable(List<Doctor> doctors) {
         System.out.println("-".repeat(95));
         System.out.printf("%-5s %-25s %-18s %-18s %-10s %-10s%n",
-                "ID", "Name", "Specialization", "Department", "Patients", "Fee");
+                "Code", "Name", "Specialization", "Department", "Patients", "Fee");
         System.out.println("-".repeat(95));
 
         for (Doctor d : doctors) {
             System.out.printf("%-5d %-25s %-18s %-18s %-10d Rs.%-8.2f%n",
-                    d.getDoctorID(),
+                    d.getDoctorCode(),
                     d.getName(),
                     d.getSpecialization(),
                     d.getDepartment(),

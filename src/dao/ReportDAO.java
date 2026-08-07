@@ -12,17 +12,18 @@ public class ReportDAO {
     Connection con = DatabaseConnection.getConnection();
 
     public boolean insertReport(Report r) {
-        String query = "INSERT INTO Report (ResultValue, ResultStatus, AnalysisDate, DoctorNotes, TestRequestID, LabTechID) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO Report (ReportCode, ResultValue, ResultStatus, AnalysisDate, DoctorNotes, TestRequestID, LabTechID) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
 
-            pstmt.setDouble(1, r.getResultValue());
-            pstmt.setString(2, r.getResultStatus());
-            pstmt.setString(3, r.getAnalysisDate());
-            pstmt.setString(4, r.getDoctorNotes());
-            pstmt.setInt(5, r.getTestRequestID());
-            pstmt.setInt(6, r.getLabTechID());
+            pstmt.setString(1, r.getReportCode());
+            pstmt.setDouble(2, r.getResultValue());
+            pstmt.setString(3, r.getResultStatus());
+            pstmt.setString(4, r.getAnalysisDate());
+            pstmt.setString(5, r.getDoctorNotes());
+            pstmt.setInt(6, r.getTestRequestID());
+            pstmt.setInt(7, r.getLabTechID());
 
             int rows = pstmt.executeUpdate();
             return rows > 0;
@@ -147,9 +148,31 @@ public class ReportDAO {
         return reportList;
     }
 
+    public String generateReportCode(int hospitalID){
+        String query = "SELECT COUNT(*) FROM Report WHERE HospitalID = ?";
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, hospitalID);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("RPT%03d", nextId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error generating Report Code: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     private Report buildReportFromResultSet(ResultSet rs) throws SQLException {
         Report r = new Report();
         r.setReportID(rs.getInt("ReportID"));
+        r.setReportCode(rs.getString("ReportCode"));
         r.setResultValue(rs.getDouble("ResultValue"));
         r.setResultStatus(rs.getString("ResultStatus"));
         r.setAnalysisDate(rs.getString("AnalysisDate"));

@@ -105,7 +105,7 @@ public class FileManager {
         appendToFile("Report_" + reportId + ".txt", block);
     }
 
-    public void writeBillFile(int billId, int admissionId, String patientName, String doctorName,
+    public void writeBillFile(String billId, int admissionId, String patientName, String doctorName,
                               String hospitalName, double roomCharge, double doctorFee,
                               double testCharge, double totalAmount, String billDate) {
         StringBuilder content = new StringBuilder();

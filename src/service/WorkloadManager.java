@@ -29,7 +29,7 @@ public class WorkloadManager {
 
         System.out.println("------------------------------------------------------------");
         System.out.printf("%-10s %-25s %-18s%n",
-                "Doctor ID", "Doctor Name", "Current Workload");
+                "Doctor Code", "Doctor Name", "Current Workload");
         System.out.println("------------------------------------------------------------");
 
         Doctor leastBusy = departmentDoctors.get(0);
@@ -37,7 +37,7 @@ public class WorkloadManager {
         for (Doctor d : departmentDoctors) {
 
             System.out.printf("%-10d %-25s %-18d%n",
-                    d.getDoctorID(),
+                    d.getDoctorCode(),
                     d.getName(),
                     d.getPatientCount());
 

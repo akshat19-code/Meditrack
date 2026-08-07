@@ -3,6 +3,7 @@ package model;
 public class Report {
 
     private int reportID;
+    private String reportCode;
     private double resultValue;
     private String resultStatus;
     private String analysisDate;
@@ -25,6 +26,7 @@ public class Report {
     }
 
     public int getReportID() { return reportID; }
+    public String getReportCode() {return reportCode;}
     public double getResultValue() { return resultValue; }
     public String getResultStatus() { return resultStatus; }
     public String getAnalysisDate() { return analysisDate; }
@@ -33,6 +35,7 @@ public class Report {
     public int getLabTechID() { return labTechID; }
 
     public void setReportID(int reportID) { this.reportID = reportID; }
+    public void setReportCode(String reportCode) {this.reportCode = reportCode;}
     public void setResultValue(double resultValue) { this.resultValue = resultValue; }
     public void setResultStatus(String resultStatus) { this.resultStatus = resultStatus; }
     public void setAnalysisDate(String analysisDate) { this.analysisDate = analysisDate; }
