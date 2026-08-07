@@ -236,7 +236,7 @@ public class DoctorMenu {
                 reportDAO.updateDoctorNotes(r.getReportID(), notes);
 
         if (success) {
-            fileManager.appendDiagnosisToReportFile(r.getReportID(), notes);
+            fileManager.appendDiagnosisToReportFile(ad.getPatientID(),r.getReportID(), notes);
             fileManager.addDiagnosisHistoryEntry(ad.getPatientID(), r.getReportID(), loggedInDoctor.getName());
             System.out.println("Notes added successfully!");
         } else {
