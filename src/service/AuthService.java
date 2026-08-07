@@ -46,6 +46,15 @@ public class AuthService {
         }
         return h;
     }
+    private Hospital validateHospitalForPatient(String hospitalCode) {
+        Hospital h = hospitalDAO.getHospitalByCode(hospitalCode);
+
+        if (h == null) {
+            System.out.println("Invalid Hospital Code.");
+            return null;
+        }
+        return h;
+    }
 
     public Admin adminLogin(String hospitalCode, String username, String password) {
         Hospital h = validateHospital(hospitalCode);
@@ -117,7 +126,7 @@ public class AuthService {
     }
 
     public Patient patientLogin(String hospitalCode, String username, String password) {
-        Hospital h = validateHospital(hospitalCode);
+        Hospital h = validateHospitalForPatient(hospitalCode);
         if (h == null) {
             fileManager.logLoginAttempt("PATIENT", hospitalCode, username, false);
             return null;

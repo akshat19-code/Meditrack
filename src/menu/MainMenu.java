@@ -201,11 +201,6 @@ public class MainMenu {
                 continue;
             }
 
-            if (!h.getStatus().equalsIgnoreCase("ACTIVE")) {
-                System.out.println("Hospital is " + h.getStatus() + ". Login denied.");
-                return;
-            }
-
             break;
         }
 

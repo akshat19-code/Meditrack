@@ -308,10 +308,11 @@ public class DoctorMenu {
         System.out.println("-".repeat(90));
         System.out.printf("%-5s %-25s %-10s %-10s%n",
                 "No.", "Test Name", "Range", "Charge");
+        System.out.println("-".repeat(90));
 
         int i = 1;
         for (TestType tt : testTypes) {
-            System.out.printf("%-5d %-25s %-10s %-10.2f%n",
+            System.out.printf("%-5d %-25s %-10s Rs.%-8.2f%n",
                     i++,
                     tt.getTestName(),
                     tt.getNormalMin() + "-" + tt.getNormalMax(),

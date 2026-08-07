@@ -5,6 +5,9 @@ import ds.*;
 import model.*;
 import service.*;
 import util.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class AdminMenu {
@@ -306,53 +309,62 @@ public class AdminMenu {
         sc.nextLine();
         String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
         String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
-        String username = InputValidator.readNonEmptyString(sc, "Username: ");
-        String password = InputValidator.readNonEmptyString(sc, "Password: ");
-        String email = InputValidator.readEmail(sc, "Email: ");
-        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
         String dob = InputValidator.readDate(sc, "DOB (YYYY-MM-DD): ", true);
-
-        String gender = InputValidator.readMenuChoice(sc, "Gender:",
-                new String[]{"MALE", "FEMALE", "OTHER"},
-                new String[]{"MALE", "FEMALE", "OTHER"});
-        sc.nextLine();
-
-        String bloodGroup = InputValidator.readMenuChoice(sc, "Blood Group:",
-                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "Unknown"},
-                new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "UNK"});
-        sc.nextLine();
-
-        String street = InputValidator.readAddressString(sc, "Street: ");
-        String city = InputValidator.readAlphabeticString(sc, "City: ");
-        String state = InputValidator.readAlphabeticString(sc, "State: ");
-        String pincode = InputValidator.readPincode(sc, "Pincode: ");
-
         String fullName = firstName + " " + lastName;
-
         Patient existingPatient = patientDAO.findReturningPatient(fullName, dob, loggedInAdmin.getHospitalID());
         Patient newPatient;
-
         if (existingPatient != null) {
             System.out.println("Returning patient detected - reusing existing patient record.");
             newPatient = existingPatient;
-        } else {
+        }
+        else{
+            String email;
+            String phone;
+            String username = InputValidator.readNonEmptyString(sc, "Username: ");
             if (patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID()) != null) {
                 System.out.println("A patient with this username already exists in your hospital.");
                 navStack.pop();
                 return;
             }
-
-            if (patientDAO.getPatientByEmail(email) != null) {
-                System.out.println("A patient with this email already exists.");
-                navStack.pop();
-                return;
+            String password = InputValidator.readNonEmptyString(sc, "Password: ");
+            while(true){
+                email = InputValidator.readEmail(sc, "Email(0 to cancel): ");
+                if (email.equals("0")) {
+                    navStack.pop();
+                    return;
+                }
+                if (patientDAO.getPatientByEmail(email) != null) {
+                    System.out.println("A patient with this email already exists.");
+                    continue;
+                }
+                break;
             }
-
-            if (patientDAO.getPatientByPhone(phone) != null) {
-                System.out.println("A patient with this phone number already exists.");
-                navStack.pop();
-                return;
+            while(true) {
+                phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
+                if(phone.equals("0")){
+                    navStack.pop();
+                    return;
+                }
+                if (patientDAO.getPatientByPhone(phone) != null) {
+                    System.out.println("A patient with this phone number already exists.");
+                    continue;
+                }
+                break;
             }
+            String gender = InputValidator.readMenuChoice(sc, "Gender:",
+                    new String[]{"MALE", "FEMALE", "OTHER"},
+                    new String[]{"MALE", "FEMALE", "OTHER"});
+            sc.nextLine();
+
+            String bloodGroup = InputValidator.readMenuChoice(sc, "Blood Group:",
+                    new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "Unknown"},
+                    new String[]{"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "UNK"});
+            sc.nextLine();
+
+            String street = InputValidator.readAddressString(sc, "Street: ");
+            String city = InputValidator.readAlphabeticString(sc, "City: ");
+            String state = InputValidator.readAlphabeticString(sc, "State: ");
+            String pincode = InputValidator.readPincode(sc, "Pincode: ");
 
             Patient p = new Patient();
             p.setFirstName(firstName);
@@ -381,7 +393,6 @@ public class AdminMenu {
             newPatient = patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID());
         }
 
-        // ---- Department selection before doctor assignment ----
         List<Doctor> hospitalDoctors = doctorDAO.getAllDoctorsByHospital(loggedInAdmin.getHospitalID());
         List<String> departments = new ArrayList<>();
         for (Doctor d : hospitalDoctors) {
@@ -424,8 +435,6 @@ public class AdminMenu {
             return;
         }
 
-        // ---- Requirement 5: Room Allocation Improvement ----
-        // Step 1: show available Room Types with their fixed charges.
         printRoomTypeMenu();
         int roomTypeChoice = InputValidator.readInt(sc, "Select Room Type: ");
         sc.nextLine();
@@ -439,7 +448,6 @@ public class AdminMenu {
         String roomType = ROOM_TYPE_VALUES[roomTypeChoice - 1];
         double roomCharge = ROOM_TYPE_CHARGES[roomTypeChoice - 1];
 
-        // Step 2: show only the available room numbers of the selected type.
         List<String> availableRooms = getAvailableRoomNumbers(roomType);
         if (availableRooms.isEmpty()) {
             System.out.println("No available rooms of this type right now. Admission cancelled.");
@@ -458,9 +466,8 @@ public class AdminMenu {
         }
 
         String roomNumber = availableRooms.get(roomChoice - 1);
-        // Step 3: charge is auto-assigned from the selected Room Type - no manual entry.
-
-        String admissionDate = InputValidator.readDate(sc, "Admission Date (YYYY-MM-DD): ", false);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd ");
+        String admissionDate = LocalDateTime.now().format(formatter);
 
         Admission ad = new Admission();
         ad.setAdmissionDate(admissionDate);
