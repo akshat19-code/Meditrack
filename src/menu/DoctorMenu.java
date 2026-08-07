@@ -80,54 +80,83 @@ public class DoctorMenu {
     private void requestTest() {
         navStack.push("RequestTest");
         System.out.println("\nPath: " + navStack.getPath());
+
         List<Admission> admissions = admissionDAO.getActiveAdmissionsByDoctor(loggedInDoctor.getDoctorID());
 
         if (admissions.isEmpty()) {
             System.out.println("No currently assigned patients.");
-        } else {
-            printAssignedPatientsTable(admissions);
-        }
-        int admissionId = InputValidator.readInt(sc, "Enter Admission ID: ");
-
-        Admission ad = admissionDAO.getAdmissionById(admissionId);
-        if (ad == null) {
-            System.out.println("Admission not found.");
             navStack.pop();
             return;
         }
 
-        if (ad.getHospitalID() != loggedInDoctor.getHospitalID()) {
-            System.out.println("This admission does not belong to your hospital.");
-            navStack.pop();
-            return;
+        printAssignedPatientsTable(admissions);
+
+        Admission ad;
+
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Patient (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > admissions.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            ad = admissions.get(choice - 1);
+            break;
         }
 
-        if (ad.getDoctorID() != loggedInDoctor.getDoctorID()) {
-            System.out.println("This patient is not assigned to you.");
-            navStack.pop();
-            return;
-        }
+        System.out.println("\nAvailable Test Types:");
 
-        System.out.println("Available Test Types:");
         List<TestType> testTypes = testTypeDAO.getAllTestTypesByHospital(loggedInDoctor.getHospitalID());
+
+        if (testTypes.isEmpty()) {
+            System.out.println("No Test Types available.");
+            navStack.pop();
+            return;
+        }
+
         printTestTypeTable(testTypes);
 
-        int testTypeId = InputValidator.readInt(sc, "Enter Test Type ID: ");
-        sc.nextLine();
+        TestType selectedTest;
 
-        String priority = InputValidator.readMenuChoice(sc, "Priority:",
-                new String[]{"NORMAL", "EMERGENCY"},
-                new String[]{"NORMAL", "EMERGENCY"});
-        sc.nextLine();
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Test Type (0 to cancel): ");
 
-        String equipmentUsageDate = InputValidator.readDate(sc, "Equipment Usage Date (yyyy-mm-dd): ", false, true);
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
 
-        TestType selectedTest = testTypeDAO.getTestTypeById(testTypeId);
-        if (selectedTest == null) {
-            System.out.println("Invalid Test Type ID.");
-            navStack.pop();
-            return;
+            if (choice < 1 || choice > testTypes.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            selectedTest = testTypes.get(choice - 1);
+            break;
         }
+
+        sc.nextLine();
+
+        String priority = InputValidator.readMenuChoice(
+                sc,
+                "Priority:",
+                new String[]{"NORMAL", "EMERGENCY"},
+                new String[]{"NORMAL", "EMERGENCY"}
+        );
+        sc.nextLine();
+
+        String equipmentUsageDate = InputValidator.readDate(
+                sc,
+                "Equipment Usage Date (yyyy-mm-dd): ",
+                false,
+                true
+        );
 
         Patient p = patientDAO.getPatientById(ad.getPatientID());
 
@@ -136,16 +165,20 @@ public class DoctorMenu {
         tr.setEquipmentUsageDate(equipmentUsageDate);
         tr.setPriority(priority);
         tr.setStatus("PENDING");
-        tr.setAdmissionID(admissionId);
+        tr.setAdmissionID(ad.getAdmissionID());
         tr.setDoctorID(loggedInDoctor.getDoctorID());
-        tr.setTestTypeID(testTypeId);
+        tr.setTestTypeID(selectedTest.getTestTypeID());
         tr.setEquipmentID(selectedTest.getEquipmentID());
 
-        boolean success = queueService.requestTest(tr,
+        boolean success = queueService.requestTest(
+                tr,
                 p != null ? p.getName() : "Unknown Patient",
-                selectedTest.getTestName());
+                selectedTest.getTestName()
+        );
 
-        System.out.println(success ? "Test request created successfully!" : "Failed to create test request.");
+        System.out.println(success
+                ? "Test request created successfully!"
+                : "Failed to create test request.");
 
         navStack.pop();
     }
@@ -162,16 +195,26 @@ public class DoctorMenu {
         }
         printReportSummaryTable(reports);
 
-        int reportId = InputValidator.readInt(sc, "Enter Report ID: ");
-        sc.nextLine();
+        Report r;
 
-        Report r = reportDAO.getReportById(reportId);
-        if (r == null) {
-            System.out.println("Report not found.");
-            navStack.pop();
-            return;
+        while (true) {
+            int choice = InputValidator.readInt(sc, "Select Report (0 to cancel): ");
+
+            if (choice == 0) {
+                navStack.pop();
+                return;
+            }
+
+            if (choice < 1 || choice > reports.size()) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+
+            r = reports.get(choice - 1);
+            break;
         }
 
+        sc.nextLine();
         TestRequest tr = testRequestDAO.getTestRequestById(r.getTestRequestID());
         Admission ad = (tr != null) ? admissionDAO.getAdmissionById(tr.getAdmissionID()) : null;
 
@@ -189,11 +232,12 @@ public class DoctorMenu {
 
         System.out.println(r);
         String notes = InputValidator.readNonEmptyString(sc, "Enter Diagnosis Notes: ");
-        boolean success = reportDAO.updateDoctorNotes(reportId, notes);
+        boolean success =
+                reportDAO.updateDoctorNotes(r.getReportID(), notes);
 
         if (success) {
-            fileManager.appendDiagnosisToReportFile(reportId, notes);
-            fileManager.addDiagnosisHistoryEntry(ad.getPatientID(), reportId, loggedInDoctor.getName());
+            fileManager.appendDiagnosisToReportFile(r.getReportID(), notes);
+            fileManager.addDiagnosisHistoryEntry(ad.getPatientID(), r.getReportID(), loggedInDoctor.getName());
             System.out.println("Notes added successfully!");
         } else {
             System.out.println("Failed to add notes.");
@@ -238,50 +282,51 @@ public class DoctorMenu {
     }
 
     private void printAssignedPatientsTable(List<Admission> admissions) {
-        System.out.println("-".repeat(90));
-        System.out.printf("%-14s %-25s %-12s %-15s %-12s%n",
-                "Admission ID", "Patient Name", "Room No.", "Room Type", "Status");
-        System.out.println("-".repeat(90));
+        System.out.println("-".repeat(85));
+        System.out.printf("%-5s %-25s %-12s %-15s %-12s%n",
+                "No.", "Patient Name", "Room No.", "Room Type", "Status");
+        System.out.println("-".repeat(85));
+
+        int srNo = 1;
 
         for (Admission ad : admissions) {
             Patient p = patientDAO.getPatientById(ad.getPatientID());
             String patientName = (p != null) ? p.getName() : "Unknown";
 
-            System.out.printf("%-14d %-25s %-12s %-15s %-12s%n",
-                    ad.getAdmissionID(),
+            System.out.printf("%-5d %-25s %-12s %-15s %-12s%n",
+                    srNo++,
                     patientName,
                     ad.getRoomNumber(),
                     ad.getRoomType(),
                     ad.getStatus());
         }
 
-        System.out.println("-".repeat(90));
+        System.out.println("-".repeat(85));
     }
 
     private void printTestTypeTable(List<TestType> testTypes) {
         System.out.println("-".repeat(90));
-        System.out.printf("%-5s %-30s %-20s %-10s%n",
-                "ID", "Test Name", "Normal Range", "Charge");
-        System.out.println("-".repeat(90));
+        System.out.printf("%-5s %-25s %-10s %-10s%n",
+                "No.", "Test Name", "Range", "Charge");
 
+        int i = 1;
         for (TestType tt : testTypes) {
-            String range = String.format("%.2f - %.2f %s", tt.getNormalMin(), tt.getNormalMax(), tt.getUnit());
-            System.out.printf("%-5d %-30s %-20s Rs.%-8.2f%n",
-                    tt.getTestTypeID(),
+            System.out.printf("%-5d %-25s %-10s %-10.2f%n",
+                    i++,
                     tt.getTestName(),
-                    range,
+                    tt.getNormalMin() + "-" + tt.getNormalMax(),
                     tt.getTestCharge());
         }
-
         System.out.println("-".repeat(90));
     }
 
     private void printReportSummaryTable(List<Report> reports) {
         System.out.println("-".repeat(110));
-        System.out.printf("%-6s %-22s %-22s %-12s %-12s %-9s%n",
-                "RepID", "Patient", "Test", "Status", "Date", "Reviewed");
+        System.out.printf("%-5s %-22s %-22s %-12s %-12s %-9s%n",
+                "No.", "Patient", "Test", "Status", "Date", "Reviewed");
         System.out.println("-".repeat(110));
 
+        int srNo = 1;
         for (Report r : reports) {
             String patientName = "Unknown";
             String testName = "Unknown Test";
@@ -303,8 +348,8 @@ public class DoctorMenu {
 
             String reviewed = isReportReviewed(r) ? "YES" : "NO";
 
-            System.out.printf("%-6d %-22s %-22s %-12s %-12s %-9s%n",
-                    r.getReportID(),
+            System.out.printf("%-5d %-22s %-22s %-12s %-12s %-9s%n",
+                    srNo++,
                     patientName,
                     testName,
                     r.getResultStatus(),
