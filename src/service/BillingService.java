@@ -43,7 +43,7 @@ public class BillingService {
             return false;
         }
 
-        fileManager.writeBillFile(savedBill.getBillID(), admissionId, patientName, doctorName,
+        fileManager.writeBillFile(patientId, savedBill.getBillID(), admissionId, patientName, doctorName,
                 hospitalName, savedBill.getRoomCharge(), savedBill.getDoctorFee(),
                 savedBill.getTestCharge(), savedBill.getTotalAmount(), savedBill.getBillDate());
         fileManager.addDischargeHistoryEntry(patientId, savedBill.getBillDate(), savedBill.getTotalAmount());

@@ -88,7 +88,7 @@ public class FileManager {
 
         String entry = "[" + getCurrentTimestamp() + "] " + summary;
 
-        String columnHeader = "Timestamp              Event";
+        String columnHeader = "Timestamp                                      Event";
         String header = buildHeader("PATIENT HISTORY - PATIENT " + patientId)
                 + columnHeader + "\n"
                 + "-".repeat(columnHeader.length()) + "\n\n";

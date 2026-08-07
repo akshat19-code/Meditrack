@@ -66,7 +66,7 @@ public class ReportAnalyser {
             int patientId = Integer.parseInt(patientSummary[0]);
             String patientName = patientSummary[1];
 
-            fileManager.writeReportFile(savedReport.getReportID(), testRequestId, patientName,
+            fileManager.writeReportFile(patientId, savedReport.getReportID(), testRequestId, patientName,
                     tt.getTestName(), resultValue, status, analysisDate, lt.getName());
             fileManager.addReportHistoryEntry(patientId, savedReport.getReportID(),
                     tt.getTestName(), status, analysisDate);
