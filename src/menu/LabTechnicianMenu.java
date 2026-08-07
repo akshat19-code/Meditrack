@@ -31,7 +31,6 @@ public class LabTechnicianMenu {
         navStack.push("LabTechnicianMenu");
         boolean flag = true;
 
-        // Restore the in-memory queue from the DB, in case the program was restarted
         queueService.loadPendingRequests(loggedInLabTech.getHospitalID());
 
         while (flag) {
@@ -41,7 +40,7 @@ public class LabTechnicianMenu {
             System.out.println("2. Process Next Request");
             System.out.println("3. Upload Result");
             System.out.println("4. Change Password");
-            System.out.println("0. Back");
+            System.out.println("0. Log Off");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
 
@@ -152,7 +151,6 @@ public class LabTechnicianMenu {
         double resultValue = InputValidator.readDouble(sc, "Enter Result Value: ");
 
         String analysisDate = java.time.LocalDate.now().toString();
-
         boolean success = reportAnalyser.generateReport(
                 tr.getTestRequestID(), resultValue, analysisDate, loggedInLabTech.getLabTechID());
 

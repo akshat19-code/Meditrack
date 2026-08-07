@@ -59,7 +59,8 @@ public class QueueService {
         }
 
         testRequestDAO.updateTestRequestStatus(Integer.parseInt(details[0]), "PROCESSING");
-
+        String equipmentUsageDate = java.time.LocalDate.now().toString();
+        testRequestDAO.updateEquipmentUsageDate(Integer.parseInt(details[0]),equipmentUsageDate);
         return details;
     }
 

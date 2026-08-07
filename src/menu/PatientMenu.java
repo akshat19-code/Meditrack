@@ -43,7 +43,7 @@ public class PatientMenu {
             System.out.println("4. View Admission Status & Bill");
             System.out.println("5. View My History");
             System.out.println("6. Change Password");
-            System.out.println("0. Back");
+            System.out.println("0. Log Off");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
 
@@ -137,7 +137,14 @@ public class PatientMenu {
         System.out.println("\nPath: " + navStack.getPath());
 
         String history = fileManager.readPatientHistory(loggedInPatient.getPatientID());
-        System.out.println(history);
+
+        if (history == null || history.isBlank()) {
+            System.out.println("No patient history available.");
+            navStack.pop();
+            return;
+        }
+
+        printPatientHistory(history);
 
         navStack.pop();
     }
@@ -177,6 +184,24 @@ public class PatientMenu {
         navStack.pop();
     }
 
+    private void printPatientHistory(String history) {
+
+        System.out.println("-".repeat(70));
+
+        String[] lines = history.split("\n");
+
+        for (String line : lines) {
+            if (line.isBlank()) {
+                System.out.println("-".repeat(70));
+                System.out.println();
+                continue;
+            }
+
+            System.out.println(line);
+        }
+
+        System.out.println("-".repeat(70));
+    }
 
     private void printPatientDetails(Patient p, int age) {
         System.out.println("-".repeat(60));

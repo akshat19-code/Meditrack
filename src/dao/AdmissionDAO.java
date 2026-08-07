@@ -125,32 +125,6 @@ public class AdmissionDAO {
         return null;
     }
 
-    public List<String> getActivePatientSummariesByDoctor(int doctorId) {
-        List<String> summaries = new ArrayList<>();
-        String query = "SELECT AdmissionID, PatientName, RoomNumber, Status " +
-                "FROM PatientSummaryView WHERE DoctorID = ? AND Status = 'ADMITTED'";
-
-        Connection con = DatabaseConnection.getConnection();
-
-        try (PreparedStatement pstmt = con.prepareStatement(query)) {
-
-            pstmt.setInt(1, doctorId);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                String line = "Admission ID: " + rs.getInt("AdmissionID") +
-                        " | Patient: " + rs.getString("PatientName") +
-                        " | Room: " + rs.getString("RoomNumber") +
-                        " | Status: " + rs.getString("Status");
-                summaries.add(line);
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error fetching patient summaries for Doctor: " + e.getMessage());
-        }
-        return summaries;
-    }
-
     public boolean reassignAdminForAdmissions(int oldAdminId, int newAdminId) {
         String query = "UPDATE Admission SET AdminID = ? WHERE AdminID = ?";
 

@@ -62,7 +62,7 @@ public class AdminMenu {
             System.out.println("4. View ");
             System.out.println("5. Change Password");
             System.out.println("6. Dashboard");
-            System.out.println("0. Back");
+            System.out.println("0. Log Off");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
 
@@ -320,11 +320,18 @@ public class AdminMenu {
         else{
             String email;
             String phone;
-            String username = InputValidator.readNonEmptyString(sc, "Username: ");
-            if (patientDAO.getPatientByUsername(username, loggedInAdmin.getHospitalID()) != null) {
-                System.out.println("A patient with this username already exists in your hospital.");
-                navStack.pop();
-                return;
+            String username;
+            while(true){
+                username = InputValidator.readNonEmptyString(sc, "Username(0 to cancel): ");
+                if (username.equals("0")) {
+                    navStack.pop();
+                    return;
+                }
+                if (patientDAO.getPatientByUsername(username,loggedInAdmin.getHospitalID()) != null) {
+                    System.out.println("A patient with this Username already exists.");
+                    continue;
+                }
+                break;
             }
             String password = InputValidator.readNonEmptyString(sc, "Password: ");
             while(true){
@@ -466,7 +473,7 @@ public class AdminMenu {
         }
 
         String roomNumber = availableRooms.get(roomChoice - 1);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd ");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String admissionDate = LocalDateTime.now().format(formatter);
 
         Admission ad = new Admission();
@@ -691,7 +698,7 @@ public class AdminMenu {
         }
 
         String log = fileManager.readHospitalLoginLog(h.getHospitalCode());
-        System.out.println(log);
+        printLoginLogTable(log);
 
         navStack.pop();
     }
@@ -828,7 +835,7 @@ public class AdminMenu {
 
         int srNo = 1;
         for (Patient p : patients) {
-            System.out.printf("%-5d %-35s %-10s %-8s %-10s %-15s%n",
+            System.out.printf("%-5d %-35s %-5s %-8s %-10s %-15s%n",
                     srNo++,
                     p.getName(),
                     patientDAO.calculateAge(p.getDob()),
@@ -932,5 +939,74 @@ public class AdminMenu {
         }
 
         return available;
+    }
+    private void printLoginLogTable(String log) {
+        if (log == null || log.isBlank()) {
+            System.out.println("No login records found.");
+            return;
+        }
+
+        String[] lines = log.split("\n");
+        List<String[]> rows = new ArrayList<>();
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            String[] parsed = parseLoginLogLine(trimmed);
+            if (parsed != null) {
+                rows.add(parsed);
+            }
+        }
+
+        if (rows.isEmpty()) {
+            System.out.println("No login records found.");
+            return;
+        }
+
+        System.out.println("-".repeat(97));
+        System.out.printf("%-23s %-10s %-17s %-21s %-15s%n",
+                "Timestamp", "Status", "Role", "Username", "Hospital Code");
+        System.out.println("-".repeat(97));
+
+        for (String[] row : rows) {
+            System.out.printf("%-23s %-10s %-17s %-21s %-15s%n",
+                    row[0], row[1], row[2], row[3], row[4]);
+        }
+
+        System.out.println("-".repeat(97));
+    }
+
+    private String[] parseLoginLogLine(String line) {
+        try {
+            if (!line.startsWith("[")) {
+                return null;
+            }
+
+            int closeBracket = line.indexOf(']');
+            if (closeBracket == -1) {
+                return null;
+            }
+
+            String timestamp = line.substring(1, closeBracket).trim();
+            String remainder = line.substring(closeBracket + 1).trim();
+
+            String[] parts = remainder.split("\\|");
+            if (parts.length < 4) {
+                return null;
+            }
+
+            String status = parts[0].trim();
+            String role = parts[1].replace("Role:", "").trim();
+            String username = parts[2].replace("Username:", "").trim();
+            String hospitalCode = parts[3].replace("Hospital Code:", "").trim();
+
+            return new String[]{timestamp, status, role, username, hospitalCode};
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

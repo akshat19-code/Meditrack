@@ -34,6 +34,26 @@ public class AdminDAO {
         }
     }
 
+    public Admin getAdminByUsername(String username) {
+        String query = "SELECT * FROM Admin WHERE Username = ? ";
+
+        Connection con = DatabaseConnection.getConnection();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return buildAdminFromResultSet(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching Admin: " + e.getMessage());
+        }
+        return null;
+    }
+
     public Admin getAdminByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Admin WHERE Username = ? AND HospitalID = ?";
 

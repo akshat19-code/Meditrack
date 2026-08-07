@@ -39,7 +39,7 @@ public class MasterAdminMenu {
             System.out.println("6. Change Password");
             System.out.println("7. Manage Hospital Admin");
             System.out.println("8. Dashboard");
-            System.out.println("0. Back");
+            System.out.println("0. Log Off");
             System.out.println("9. Exit Application");
             int choice = InputValidator.readInt(sc, "Enter choice: ");
 
@@ -379,26 +379,45 @@ public class MasterAdminMenu {
         sc.nextLine();
         String firstName = InputValidator.readNonEmptyString(sc, "First Name: ");
         String lastName = InputValidator.readNonEmptyString(sc, "Last Name: ");
-        String username = InputValidator.readNonEmptyString(sc, "Username: ");
-
-        if (adminDAO.getAdminByUsername(username, hospitalId) != null) {
-            System.out.println("An admin with this username already exists in this hospital.");
-            return;
+        String email;
+        String phone;
+        String username;
+        while(true){
+            username = InputValidator.readNonEmptyString(sc, "Username(0 to cancel): ");
+            if (username.equals("0")) {
+                navStack.pop();
+                return;
+            }
+            if (adminDAO.getAdminByUsername(username) != null) {
+                System.out.println("A Admin with this username already exists.");
+                continue;
+            }
+            break;
         }
-
         String password = InputValidator.readNonEmptyString(sc, "Password: ");
-        String email = InputValidator.readEmail(sc, "Email: ");
-
-        if (adminDAO.getAdminByEmail(email) != null) {
-            System.out.println("An admin with this email already exists.");
-            return;
+        while(true){
+            email = InputValidator.readEmail(sc, "Email(0 to cancel): ");
+            if (email.equals("0")) {
+                navStack.pop();
+                return;
+            }
+            if (adminDAO.getAdminByEmail(email) != null) {
+                System.out.println("This Email already exists.");
+                continue;
+            }
+            break;
         }
-
-        String phone = InputValidator.readPhoneNumber(sc, "Phone No: ");
-
-        if (adminDAO.getAdminByPhone(phone) != null) {
-            System.out.println("An admin with this phone number already exists.");
-            return;
+        while(true){
+            phone = InputValidator.readPhoneNumber(sc, "Phone No(0 to cancel): ");
+            if (phone.equals("0")) {
+                navStack.pop();
+                return;
+            }
+            if (adminDAO.getAdminByPhone(phone) != null) {
+                System.out.println("This Phone Number already exists.");
+                continue;
+            }
+            break;
         }
 
         Admin a = new Admin();

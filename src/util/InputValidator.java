@@ -93,7 +93,7 @@ public class InputValidator {
         while (true) {
             System.out.print(prompt);
             String value = sc.nextLine().trim();
-            if (value.matches("[0-9]{10}")) {
+            if (value.matches("[0-9]{10}") && !value.startsWith("0")) {
                 return value;
             }
             System.out.println("Please enter a valid 10-digit phone number (numbers only).");

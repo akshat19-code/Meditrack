@@ -2,7 +2,6 @@ package service;
 
 import dao.*;
 import model.*;
-
 import java.util.List;
 
 public class HealthScoreService {
@@ -14,7 +13,7 @@ public class HealthScoreService {
 
         if (reports.isEmpty()) {
             System.out.println("No report history available - default health score assigned.");
-            return 100.0;   // no data yet, assume healthy
+            return 100.0;
         }
 
         double totalScore = 0;

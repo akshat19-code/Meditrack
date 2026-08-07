@@ -57,10 +57,8 @@ public class TestRequestQueue {
     public void enqueue(int testRequestId, String patientName, String testName, String priority) {
         if (priority.equalsIgnoreCase("EMERGENCY")) {
             insertAtFront(testRequestId, patientName, testName, priority);
-            System.out.println("EMERGENCY request added - jumped to front of queue.");
         } else {
             insertAtRear(testRequestId, patientName, testName, priority);
-            System.out.println("NORMAL request added - joined the back of queue.");
         }
     }
 
@@ -104,14 +102,7 @@ public class TestRequestQueue {
             current = current.next;
         }
         System.out.println("-".repeat(100));
-//        while (current != null) {
-//            System.out.println("Request ID: " + current.testRequestId +
-//                    " | Patient: " + current.patientName +
-//                    " | Test: " + current.testName +
-//                    " | Priority: " + current.priority);
-//            current = current.next;
-//        }
-//        System.out.println("-------------------------------------");
+
     }
 
     public boolean isEmpty() {

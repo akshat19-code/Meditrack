@@ -43,7 +43,6 @@ public class PatientDAO {
         }
     }
 
-    // Username stays hospital-specific.
     public Patient getPatientByUsername(String username, int hospitalId) {
         String query = "SELECT * FROM Patient WHERE Username = ? AND HospitalID = ?";
 
